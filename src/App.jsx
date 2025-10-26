@@ -1,16 +1,16 @@
-import { useState } from 'react'
+import { useEffect } from "react";
 import './App.css'
 import {Routes, Route, Link } from "react-router-dom";
 function App() {
-  
-  return (
-     <Routes>
-      <Route path="/" element={<h1>Home Page</h1>} />
-      <Route path="/about" element={<h1>About Page</h1>} />
-    </Routes>
-     
+  useEffect(() => {
+    fetch("http://localhost:5000/api/users")
+      .then(res => res.json())
+      .then(data => {
+        console.log("Users:", data);
+      });
+  }, []);
 
-  )
+  return <h1>Check console!</h1>;
 }
 
 export default App
