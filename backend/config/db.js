@@ -1,17 +1,19 @@
 import sql from "mssql";
+import 'dotenv/config.js'; 
 
 const config = {
-  user: "sa",
-  password: "1234",
-  server: "localhost",
-  database: "RecruitmentManagement",
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_DATABASE,
   options: {
     encrypt: false,
     trustServerCertificate: true,
   },
 };
 
-export async function connect() {
+
+async function connect() {
   try {
     let pool = await sql.connect(config);
     console.log("SQL Server Connected!");
@@ -21,4 +23,4 @@ export async function connect() {
   }
 }
 
-export { sql };
+export { sql, connect };
