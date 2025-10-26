@@ -18,6 +18,30 @@ const checkSession = async () => {
   }
 }
 
+
+const loginRequest = async (email, password) => {
+    console.log("loginRequest called with:", { email, password });
+    try{
+        const res = await axiosClient.post(`/auth/login`, { email, password });
+        console.log("res login:" , res.data)
+        return res.data;
+    } catch (err){
+        console.error("Error response", err.response);
+        throw new Error(err.response?.data?.message || 'Error logging in');
+    } 
+}
+
+const registerRequest = async (userData) => {
+    try{
+        const res = await axiosClient.post(`/auth/register`, userData);
+        console.log("res register:" , res.data)
+        return res.data;
+    } catch (err){
+        console.error("Error response", err.response);
+        throw new Error(err.response?.data?.message || 'Error registering user');
+    }
+};
+
 // const authRequest = async (idToken) => {
 //    const res = await axiosClient.post(`/auth/login`, {}, {
 //     headers: { Authorization: `Bearer ${idToken}` },
@@ -35,4 +59,4 @@ const checkSession = async () => {
 //   return res.data;
 // }
 
-export { checkSession };
+export { checkSession, loginRequest, registerRequest };

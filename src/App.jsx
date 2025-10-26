@@ -1,16 +1,19 @@
 import { useEffect } from "react";
 import './App.css'
 import {Routes, Route, Link } from "react-router-dom";
-function App() {
-  useEffect(() => {
-    fetch("http://localhost:5000/api/users")
-      .then(res => res.json())
-      .then(data => {
-        console.log("Users:", data);
-      });
-  }, []);
+import Home from "./page/Home";
+import LoginPage from "./page/LoginPage";
+import RegisterPage from "./page/RegisterPage";
 
-  return <h1>Check console!</h1>;
+function App() {
+
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+    </Routes>
+  );
 }
 
 export default App
