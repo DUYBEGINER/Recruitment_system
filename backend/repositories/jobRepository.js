@@ -1,12 +1,12 @@
 import sql from 'mssql';
-import poolPromise from '../config/db.js';
+import {connect} from '../config/db.js';
 
 /**
  * Tạo tin tuyển dụng mới
  */
 export const createJob = async (jobData) => {
   try {
-    const pool = await poolPromise;
+    const pool = await connect();
     const result = await pool.request()
       .input('title', sql.NVarChar, jobData.title)
       .input('description', sql.NVarChar, jobData.description)
@@ -53,7 +53,7 @@ export const createJob = async (jobData) => {
  */
 export const getAllJobs = async (filters = {}) => {
   try {
-    const pool = await poolPromise;
+    const pool = await connect();
     let query = `
       SELECT 
         id, title, description, requirements, benefits,
@@ -101,7 +101,7 @@ export const getAllJobs = async (filters = {}) => {
  */
 export const getJobById = async (id) => {
   try {
-    const pool = await poolPromise;
+    const pool = await connect();
     const result = await pool.request()
       .input('id', sql.Int, id)
       .query(`
@@ -128,7 +128,7 @@ export const getJobById = async (id) => {
  */
 export const updateJob = async (id, jobData) => {
   try {
-    const pool = await poolPromise;
+    const pool = await connect();
     const result = await pool.request()
       .input('id', sql.Int, id)
       .input('title', sql.NVarChar, jobData.title)
@@ -177,7 +177,7 @@ export const updateJob = async (id, jobData) => {
  */
 export const updateJobStatus = async (id, status) => {
   try {
-    const pool = await poolPromise;
+    const pool = await connect();
     const result = await pool.request()
       .input('id', sql.Int, id)
       .input('status', sql.NVarChar, status)
@@ -200,7 +200,7 @@ export const updateJobStatus = async (id, status) => {
  */
 export const deleteJob = async (id) => {
   try {
-    const pool = await poolPromise;
+    const pool = await connect();
     const result = await pool.request()
       .input('id', sql.Int, id)
       .query(`
