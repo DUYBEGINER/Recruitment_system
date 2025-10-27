@@ -1,0 +1,73 @@
+
+
+/* 1. Hero Section Container */
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: 80vh; /* Điều chỉnh chiều cao cho phù hợp với ảnh mới */
+    background-color: #f0f0f0; 
+    overflow: hidden;
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+}
+
+/* 2. Top Search Bar Wrapper (Vị trí cho SearchBar) */
+.top-search-bar-wrapper {
+    position: relative; 
+    z-index: 100; /* Đảm bảo nó luôn nằm trên các lớp khác */
+    width: 100%; 
+    padding-top: 20px; 
+    display: flex;
+    justify-content: center; 
+}
+
+/* 3. Hero Content (Bây giờ chứa ảnh nền VÀ text) */
+.hero-content {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5; /* Ảnh và text nằm dưới search bar */
+    overflow: hidden;
+    display: flex; /* Dùng flexbox để căn giữa text */
+    justify-content: center; /* Căn giữa ngang */
+    align-items: center; /* Căn giữa dọc */
+}
+
+/* 4. Hero Background (Chứa ảnh) */
+.hero-bg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Ảnh nằm dưới text */
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    object-position: center top; 
+    filter: brightness(0.5) grayscale(0.2); 
+}
+
+/* 5. Hero Text (Đã được đưa vào hero-content) */
+.hero-text {
+    position: relative; /* Dùng relative vì nó đã nằm trong hero-content được căn giữa */
+    z-index: 20; /* Đảm bảo text nằm trên ảnh nền */
+    font-size: 4em; /* Kích thước chữ lớn */
+    color: white; /* Màu chữ trắng */
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5); /* Bóng chữ để dễ đọc */
+    margin: 100px; /* Dịch chuyển xuống dưới một chút nếu cần */
+    /* Remove transform translate nếu đã dùng flexbox trên hero-content để căn giữa */
+}
+
+.hero-text span {
+    /* Nếu bạn muốn tạo hiệu ứng đặc biệt cho text bên trong span */
+    /* Ví dụ: background-color: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 5px; */
+}
