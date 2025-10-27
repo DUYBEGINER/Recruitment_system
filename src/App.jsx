@@ -8,6 +8,8 @@ import RegisterPage from "./page/RegisterPage";
 import CreateJob from "./page/admin/CreateJob";
 import JobsPost from "./page/admin/JobsPost";
 import UploadFile from "./page/admin/UploadFile";
+import Recruitment from "./page/Recruitment";
+
 import '@ant-design/v5-patch-for-react-19';
 
 function App() {
@@ -15,6 +17,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/recruitment" element={<Recruitment />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/employee-login" element={<EmployeeLoginPage />} />
       <Route path="/register" element={<RegisterPage />} />

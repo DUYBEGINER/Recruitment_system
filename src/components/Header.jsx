@@ -1,11 +1,15 @@
 import { Globe } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hook/useAuth";
 import {Link} from "react-router-dom";
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
+  
+  // Helper function để check active link
+  const isActive = (path) => location.pathname === path;
 
   return (
     <header className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
@@ -18,12 +22,42 @@ export default function Header() {
 
         {/* Menu */}
         <nav className="hidden md:flex items-center space-x-6 text-gray-700 font-medium">
-          <a href="#" className="hover:text-red-600">Trang chủ</a>
-          <a href="#" className="hover:text-red-600">Về chúng tôi</a>
-          <a href="#" className="text-red-600 font-semibold">Tuyển dụng</a>
-          <a href="#" className="hover:text-red-600">Đãi ngộ</a>
-          <a href="#" className="hover:text-red-600">Sự kiện</a>
-          <a href="#" className="hover:text-red-600">Liên hệ</a>
+          <Link 
+            to="/" 
+            className={`hover:text-red-600 transition-colors ${isActive('/') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Trang chủ
+          </Link>
+          <Link 
+            to="/about" 
+            className={`hover:text-red-600 transition-colors ${isActive('/about') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Về chúng tôi
+          </Link>
+          <Link 
+            to="/recruitment" 
+            className={`hover:text-red-600 transition-colors ${isActive('/recruitment') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Tuyển dụng
+          </Link>
+          <Link 
+            to="/benefits" 
+            className={`hover:text-red-600 transition-colors ${isActive('/benefits') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Đãi ngộ
+          </Link>
+          <Link 
+            to="/events" 
+            className={`hover:text-red-600 transition-colors ${isActive('/events') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Sự kiện
+          </Link>
+          <Link 
+            to="/contact" 
+            className={`hover:text-red-600 transition-colors ${isActive('/contact') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Liên hệ
+          </Link>
         </nav>
 
         {/* Right side */}
