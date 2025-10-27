@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
+// import Header from '../components/Header/Header';
+// import Footer from '../components/Footer';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import Hero from '../components/Hero';
 
 const MainLayout = ({ children, showHero = false, heroContent = null}) => {
 
