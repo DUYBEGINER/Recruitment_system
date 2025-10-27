@@ -2,52 +2,75 @@ import {axiosClient} from '../utils/axiosClient';
 
 const jobAPI = {
   /**
-   * Tạo tin tuyển dụng mới
+   * Tạo tin tuyển dụng mới (draft)
    */
   createJob: async (jobData) => {
-    return axiosClient.post('/api/jobs', jobData);
+    const res = await axiosClient.post('/jobs', jobData);
+    return res.data;
   },
 
   /**
    * Lấy danh sách tất cả jobs
    */
   getJobs: async (params = {}) => {
-    return axiosClient.get('/api/jobs', { params });
+    const res = await axiosClient.get('/jobs', { params });
+    return res.data;
   },
 
   /**
    * Lấy thông tin job theo ID
    */
   getJobById: async (id) => {
-    return axiosClient.get(`/api/jobs/${id}`);
+    const res = await axiosClient.get(`/jobs/${id}`);
+    return res.data;
   },
 
   /**
    * Cập nhật job
    */
   updateJob: async (id, jobData) => {
-    return axiosClient.put(`/api/jobs/${id}`, jobData);
+    const res = await axiosClient.put(`/jobs/${id}`, jobData);
+    return res.data;
   },
 
   /**
-   * Xóa job
+   * Xóa job (TPNS only)
    */
   deleteJob: async (id) => {
-    return axiosClient.delete(`/api/jobs/${id}`);
+    const res = await axiosClient.delete(`/jobs/${id}`);
+    return res.data;
   },
 
   /**
-   * Gửi tin tuyển dụng để duyệt
+   * Gửi tin tuyển dụng để duyệt (draft/reject → pending)
    */
-  submitForApproval: async (id, data) => {
-    return axiosClient.post(`/api/jobs/${id}/submit-approval`, data);
+  submitForApproval: async (id) => {
+    const res = await axiosClient.post(`/jobs/${id}/submit`);
+    return res.data;
   },
 
   /**
-   * Đóng tin tuyển dụng
+   * Phê duyệt tin (TPNS only) (pending → approve)
+   */
+  approveJob: async (id) => {
+    const res = await axiosClient.post(`/jobs/${id}/approve`);
+    return res.data;
+  },
+
+  /**
+   * Từ chối tin (TPNS only) (pending → reject)
+   */
+  rejectJob: async (id, reason = '') => {
+    const res = await axiosClient.post(`/jobs/${id}/reject`, { reason });
+    return res.data;
+  },
+
+  /**
+   * Đóng tin tuyển dụng (approve → close)
    */
   closeJob: async (id) => {
-    return axiosClient.post(`/api/jobs/${id}/close`);
+    const res = await axiosClient.post(`/jobs/${id}/close`);
+    return res.data;
   },
 };
 

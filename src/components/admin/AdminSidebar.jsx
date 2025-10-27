@@ -9,6 +9,10 @@ const AdminSidebar = () => {
   // Danh sách menu chung cho tất cả employer
   const commonNavItems = [
     { path: "/HR/jobs", label: "Quản lí tin tuyển dụng", icon: Book },
+  ]
+
+  // Menu chỉ dành cho HR
+  const hrOnlyItems = [
     { path: "/HR/createjob", label: "Tạo tin tuyển dụng", icon: Upload },
   ]
 
@@ -20,7 +24,7 @@ const AdminSidebar = () => {
   // Kết hợp menu dựa vào role
   const navItems = user?.role === 'TPNS' 
     ? [...commonNavItems, ...tpnsOnlyItems]
-    : commonNavItems
+    : [...commonNavItems, ...hrOnlyItems]
 
   return (
     <aside className="w-64 bg-gray-800 min-h-screen max-h-screen flex flex-col sticky top-0 z-20">

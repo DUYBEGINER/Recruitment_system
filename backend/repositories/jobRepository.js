@@ -8,36 +8,36 @@ export const createJob = async (jobData) => {
   try {
     const pool = await connect();
     const result = await pool.request()
+      .input('employer_id', sql.Int, jobData.employer_id)
       .input('title', sql.NVarChar, jobData.title)
+      .input('location', sql.NVarChar, jobData.location)
+      .input('job_type', sql.NVarChar, jobData.job_type)
+      .input('level', sql.NVarChar, jobData.level)
       .input('description', sql.NVarChar, jobData.description)
       .input('requirements', sql.NVarChar, jobData.requirements)
       .input('benefits', sql.NVarChar, jobData.benefits)
-      .input('location', sql.NVarChar, jobData.location)
-      .input('employmentType', sql.NVarChar, jobData.employmentType)
-      .input('experienceLevel', sql.NVarChar, jobData.experienceLevel)
-      .input('salaryMin', sql.Decimal(18, 2), jobData.salaryMin)
-      .input('salaryMax', sql.Decimal(18, 2), jobData.salaryMax)
-      .input('numberOfPositions', sql.Int, jobData.numberOfPositions)
+      .input('salary_min', sql.Decimal(18, 2), jobData.salary_min)
+      .input('salary_max', sql.Decimal(18, 2), jobData.salary_max)
+      .input('quantity', sql.Int, jobData.quantity)
       .input('deadline', sql.Date, jobData.deadline)
-      .input('contactEmail', sql.NVarChar, jobData.contactEmail)
-      .input('contactPhone', sql.NVarChar, jobData.contactPhone)
-      .input('status', sql.NVarChar, jobData.status || 'PENDING')
-      .input('createdBy', sql.Int, jobData.createdBy)
+      .input('contact_email', sql.NVarChar, jobData.contact_email)
+      .input('contact_phone', sql.NVarChar, jobData.contact_phone)
+      .input('status', sql.NVarChar, jobData.status || 'draft')
       .query(`
-        INSERT INTO JobPosts (
-          title, description, requirements, benefits,
-          location, employmentType, experienceLevel,
-          salaryMin, salaryMax, numberOfPositions,
-          deadline, contactEmail, contactPhone,
-          status, createdBy, createdAt
+        INSERT INTO JobPosting (
+          employer_id, title, location, job_type, level,
+          description, requirements, benefits,
+          salary_min, salary_max, quantity,
+          deadline, contact_email, contact_phone,
+          status, created_at
         )
         OUTPUT INSERTED.*
         VALUES (
-          @title, @description, @requirements, @benefits,
-          @location, @employmentType, @experienceLevel,
-          @salaryMin, @salaryMax, @numberOfPositions,
-          @deadline, @contactEmail, @contactPhone,
-          @status, @createdBy, GETDATE()
+          @employer_id, @title, @location, @job_type, @level,
+          @description, @requirements, @benefits,
+          @salary_min, @salary_max, @quantity,
+          @deadline, @contact_email, @contact_phone,
+          @status, GETDATE()
         )
       `);
     
@@ -56,13 +56,11 @@ export const getAllJobs = async (filters = {}) => {
     const pool = await connect();
     let query = `
       SELECT 
-        id, title, description, requirements, benefits,
-        location, employmentType, experienceLevel,
-        salaryMin, salaryMax, numberOfPositions,
-        deadline, contactEmail, contactPhone,
-        status, createdBy, createdAt, updatedAt,
-        (SELECT COUNT(*) FROM Applications WHERE jobId = JobPosts.id) as applications
-      FROM JobPosts
+        jp.*,
+        e.full_name as employer_name,
+        e.role as employer_role
+      FROM JobPosting jp
+      LEFT JOIN Employer e ON jp.employer_id = e.id
       WHERE 1=1
     `;
 
@@ -70,23 +68,23 @@ export const getAllJobs = async (filters = {}) => {
 
     // Filter by status
     if (filters.status && filters.status !== 'ALL') {
-      query += ' AND status = @status';
+      query += ' AND jp.status = @status';
       request.input('status', sql.NVarChar, filters.status);
     }
 
     // Search by title or location
     if (filters.search) {
-      query += ' AND (title LIKE @search OR location LIKE @search)';
+      query += ' AND (jp.title LIKE @search OR jp.location LIKE @search)';
       request.input('search', sql.NVarChar, `%${filters.search}%`);
     }
 
-    // Filter by createdBy (for HR user)
-    if (filters.createdBy) {
-      query += ' AND createdBy = @createdBy';
-      request.input('createdBy', sql.Int, filters.createdBy);
+    // Filter by employer_id (for HR user)
+    if (filters.employer_id) {
+      query += ' AND jp.employer_id = @employer_id';
+      request.input('employer_id', sql.Int, filters.employer_id);
     }
 
-    query += ' ORDER BY createdAt DESC';
+    query += ' ORDER BY jp.created_at DESC';
 
     const result = await request.query(query);
     return result.recordset;
@@ -106,14 +104,13 @@ export const getJobById = async (id) => {
       .input('id', sql.Int, id)
       .query(`
         SELECT 
-          id, title, description, requirements, benefits,
-          location, employmentType, experienceLevel,
-          salaryMin, salaryMax, numberOfPositions,
-          deadline, contactEmail, contactPhone,
-          status, createdBy, createdAt, updatedAt,
-          (SELECT COUNT(*) FROM Applications WHERE jobId = JobPosts.id) as applications
-        FROM JobPosts
-        WHERE id = @id
+          jp.*,
+          e.full_name as employer_name,
+          e.role as employer_role,
+          e.phone as employer_phone
+        FROM JobPosting jp
+        LEFT JOIN Employer e ON jp.employer_id = e.id
+        WHERE jp.id = @id
       `);
     
     return result.recordset[0];
@@ -132,35 +129,35 @@ export const updateJob = async (id, jobData) => {
     const result = await pool.request()
       .input('id', sql.Int, id)
       .input('title', sql.NVarChar, jobData.title)
+      .input('location', sql.NVarChar, jobData.location)
+      .input('job_type', sql.NVarChar, jobData.job_type)
+      .input('level', sql.NVarChar, jobData.level)
       .input('description', sql.NVarChar, jobData.description)
       .input('requirements', sql.NVarChar, jobData.requirements)
       .input('benefits', sql.NVarChar, jobData.benefits)
-      .input('location', sql.NVarChar, jobData.location)
-      .input('employmentType', sql.NVarChar, jobData.employmentType)
-      .input('experienceLevel', sql.NVarChar, jobData.experienceLevel)
-      .input('salaryMin', sql.Decimal(18, 2), jobData.salaryMin)
-      .input('salaryMax', sql.Decimal(18, 2), jobData.salaryMax)
-      .input('numberOfPositions', sql.Int, jobData.numberOfPositions)
+      .input('salary_min', sql.Decimal(18, 2), jobData.salary_min)
+      .input('salary_max', sql.Decimal(18, 2), jobData.salary_max)
+      .input('quantity', sql.Int, jobData.quantity)
       .input('deadline', sql.Date, jobData.deadline)
-      .input('contactEmail', sql.NVarChar, jobData.contactEmail)
-      .input('contactPhone', sql.NVarChar, jobData.contactPhone)
+      .input('contact_email', sql.NVarChar, jobData.contact_email)
+      .input('contact_phone', sql.NVarChar, jobData.contact_phone)
       .query(`
-        UPDATE JobPosts
+        UPDATE JobPosting
         SET 
           title = @title,
+          location = @location,
+          job_type = @job_type,
+          level = @level,
           description = @description,
           requirements = @requirements,
           benefits = @benefits,
-          location = @location,
-          employmentType = @employmentType,
-          experienceLevel = @experienceLevel,
-          salaryMin = @salaryMin,
-          salaryMax = @salaryMax,
-          numberOfPositions = @numberOfPositions,
+          salary_min = @salary_min,
+          salary_max = @salary_max,
+          quantity = @quantity,
           deadline = @deadline,
-          contactEmail = @contactEmail,
-          contactPhone = @contactPhone,
-          updatedAt = GETDATE()
+          contact_email = @contact_email,
+          contact_phone = @contact_phone,
+          updated_at = GETDATE()
         OUTPUT INSERTED.*
         WHERE id = @id
       `);
@@ -175,19 +172,34 @@ export const updateJob = async (id, jobData) => {
 /**
  * Cập nhật trạng thái tin tuyển dụng
  */
-export const updateJobStatus = async (id, status) => {
+export const updateJobStatus = async (id, status, reason = null) => {
   try {
     const pool = await connect();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('status', sql.NVarChar, status)
-      .query(`
-        UPDATE JobPosts
-        SET status = @status, updatedAt = GETDATE()
-        OUTPUT INSERTED.*
-        WHERE id = @id
-      `);
     
+    let query = `
+      UPDATE JobPosting
+      SET status = @status, updated_at = GETDATE()
+    `;
+    
+    // Nếu là từ chối thì có thể lưu lý do (cần thêm cột reject_reason)
+    if (status === 'reject' && reason) {
+      query += `, reject_reason = @reason`;
+    }
+    
+    query += `
+      OUTPUT INSERTED.*
+      WHERE id = @id
+    `;
+    
+    const request = pool.request()
+      .input('id', sql.Int, id)
+      .input('status', sql.NVarChar, status);
+    
+    if (status === 'reject' && reason) {
+      request.input('reason', sql.NVarChar, reason);
+    }
+    
+    const result = await request.query(query);
     return result.recordset[0];
   } catch (error) {
     console.error('Error updating job status:', error);
@@ -204,7 +216,7 @@ export const deleteJob = async (id) => {
     const result = await pool.request()
       .input('id', sql.Int, id)
       .query(`
-        DELETE FROM JobPosts
+        DELETE FROM JobPosting
         OUTPUT DELETED.*
         WHERE id = @id
       `);

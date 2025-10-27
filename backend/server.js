@@ -35,7 +35,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'CV_Storage')));
 app.use("/auth", authAPI);
 app.use("/api/users", usersAPI);
 app.use("/api/upload", uploadAPI);
-app.use("/api/jobs", jobAPI);
+app.use("/jobs", jobAPI); // Đổi từ /api/jobs → /jobs
 
 // Health check endpoint
 app.get("/", (req, res) => {

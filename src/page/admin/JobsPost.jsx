@@ -1,49 +1,77 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, Pencil, Eye, Send, Lock } from "lucide-react";
+import { Plus, Search, Pencil, Eye, Send, Lock, CheckCircle, XCircle } from "lucide-react";
+import { message, Modal } from "antd";
 import AdminLayout from "../../layout/AdminLayout";
+import jobAPI from "../../api/jobAPI";
+import useAuth from "../../hook/useAuth";
 
-/** Badge trạng thái theo quy trình mới */
+/** Badge trạng thái */
 const StatusBadge = ({ status }) => {
   const map = {
-    DRAFT:     { text: "Nháp",        cls: "bg-gray-100 text-gray-700 border-gray-200" },
-    PENDING:   { text: "Chờ duyệt",   cls: "bg-amber-100 text-amber-800 border-amber-200" },
-    REJECTED:  { text: "Bị từ chối",  cls: "bg-red-100 text-red-700 border-red-200" },
-    PUBLISHED: { text: "Đang public", cls: "bg-green-100 text-green-700 border-green-200" },
-    CLOSED:    { text: "Đã đóng",     cls: "bg-slate-100 text-slate-700 border-slate-200" },
+    draft:     { text: "Nháp",        cls: "bg-gray-100 text-gray-700 border-gray-200" },
+    pending:   { text: "Chờ duyệt",   cls: "bg-amber-100 text-amber-800 border-amber-200" },
+    reject:    { text: "Bị từ chối",  cls: "bg-red-100 text-red-700 border-red-200" },
+    approve:   { text: "Đã duyệt",    cls: "bg-green-100 text-green-700 border-green-200" },
+    close:     { text: "Đã đóng",     cls: "bg-slate-100 text-slate-700 border-slate-200" },
   };
   const { text, cls } = map[status] || { text: status, cls: "bg-gray-100 text-gray-700 border-gray-200" };
   return <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${cls}`}>{text}</span>;
 };
 
-/** Hành động được phép theo trạng thái */
-const getActionsByStatus = (status) => {
-  switch (status) {
-    case "DRAFT":
-      return ["VIEW", "EDIT", "SUBMIT"];             // gửi duyệt
-    case "PENDING":
-      return ["VIEW"];                                // đợi duyệt → nếu duyệt thì backend publish luôn
-    case "REJECTED":
-      return ["VIEW", "EDIT", "SUBMIT"];             // sửa & gửi lại
-    case "PUBLISHED":
-      return ["VIEW", "EDIT", "CLOSE"];              // có thể đóng
-    case "CLOSED":
-      return ["VIEW"];                                // chỉ xem
-    default:
-      return ["VIEW"];
+/** Hành động được phép theo trạng thái và role */
+const getActionsByStatus = (status, role, isOwner) => {
+  // TPNS có quyền approve/reject pending jobs
+  if (role === 'TPNS') {
+    switch (status) {
+      case "draft":
+      case "reject":
+        return ["VIEW", "EDIT", "SUBMIT"];
+      case "pending":
+        return ["VIEW", "APPROVE", "REJECT"];
+      case "approve":
+        return ["VIEW", "EDIT", "CLOSE"];
+      case "close":
+        return ["VIEW"];
+      default:
+        return ["VIEW"];
+    }
   }
+  
+  // HR chỉ thao tác với tin của mình
+  if (role === 'HR') {
+    if (!isOwner) return ["VIEW"]; // Không phải tin của mình → chỉ xem
+    
+    switch (status) {
+      case "draft":
+      case "reject":
+        return ["VIEW", "EDIT", "SUBMIT"];
+      case "pending":
+        return ["VIEW"]; // Đang chờ duyệt → không sửa được
+      case "approve":
+        return ["VIEW", "EDIT", "CLOSE"];
+      case "close":
+        return ["VIEW"];
+      default:
+        return ["VIEW"];
+    }
+  }
+  
+  return ["VIEW"];
 };
 
 /** Hàng trong bảng */
-const JobRow = ({ job, onAction }) => {
-  const actions = getActionsByStatus(job.status);
+const JobRow = ({ job, onAction, userRole, userId }) => {
+  const isOwner = job.employer_id === userId;
+  const actions = getActionsByStatus(job.status, userRole, isOwner);
+  
   return (
     <tr className="border-b last:border-0">
       <td className="px-4 py-3 font-medium text-slate-800">{job.title}</td>
       <td className="px-4 py-3 text-slate-600">{job.location || "-"}</td>
-      <td className="px-4 py-3 text-slate-600">{job.employmentType || "-"}</td>
+      <td className="px-4 py-3 text-slate-600">{job.job_type || "-"}</td>
       <td className="px-4 py-3"><StatusBadge status={job.status} /></td>
-      <td className="px-4 py-3 text-slate-600">{job.applications ?? 0}</td>
+      <td className="px-4 py-3 text-slate-600">0</td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-2">
           <Link
@@ -74,6 +102,26 @@ const JobRow = ({ job, onAction }) => {
             </button>
           )}
 
+          {actions.includes("APPROVE") && (
+            <button
+              onClick={() => onAction("APPROVE", job)}
+              className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm border-green-200 text-green-700 hover:bg-green-50"
+              title="Phê duyệt"
+            >
+              <CheckCircle size={16} /> Duyệt
+            </button>
+          )}
+
+          {actions.includes("REJECT") && (
+            <button
+              onClick={() => onAction("REJECT", job)}
+              className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm border-red-200 text-red-700 hover:bg-red-50"
+              title="Từ chối"
+            >
+              <XCircle size={16} /> Từ chối
+            </button>
+          )}
+
           {actions.includes("CLOSE") && (
             <button
               onClick={() => onAction("CLOSE", job)}
@@ -90,87 +138,152 @@ const JobRow = ({ job, onAction }) => {
 };
 
 export default function JobsPost() {
-  // Demo data: thay bằng dữ liệu API
-  const [jobs, setJobs] = useState([
-    { id: 1, title: "Frontend Developer",      location: "Hà Nội",  employmentType: "Full-time", status: "DRAFT",     applications: 0  },
-    { id: 2, title: "Backend Java (Spring)",   location: "HCM",     employmentType: "Full-time", status: "PENDING",   applications: 0  },
-    { id: 3, title: "Data Engineer",           location: "Đà Nẵng", employmentType: "Hybrid",    status: "REJECTED",  applications: 2  },
-    { id: 4, title: "Product Manager",         location: "Hà Nội",  employmentType: "Full-time", status: "PUBLISHED", applications: 37 },
-    { id: 5, title: "QA Engineer",             location: "HCM",     employmentType: "Full-time", status: "CLOSED",    applications: 45 },
-  ]);
-
+  const { user } = useAuth();
+  const [jobs, setJobs] = useState([]);
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("ALL");
 
+  // Fetch jobs từ API
+  const fetchJobs = async () => {
+    try {
+      const params = {};
+      if (tab !== "ALL") params.status = tab.toLowerCase();
+      
+      // HR chỉ xem tin của mình
+      if (user?.role === 'HR') {
+        params.employer_id = user.id;
+      }
+      
+      // TPNS chỉ xem tin pending (chờ duyệt)
+      if (user?.role === 'TPNS') {
+        params.status = 'pending';
+      }
+      
+      const response = await jobAPI.getJobs(params);
+      if (response.success) {
+        setJobs(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      message.error('Lỗi khi tải danh sách tin tuyển dụng!');
+    }
+  };
+
   useEffect(() => {
-    // TODO: GET /api/jobposts?status=...&q=...
-  }, [q, tab]);
+    fetchJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   const filtered = useMemo(() => {
     let rows = [...jobs];
-    if (tab !== "ALL") rows = rows.filter((j) => j.status === tab);
     if (q.trim()) {
       const t = q.toLowerCase();
       rows = rows.filter((j) => (j.title + j.location).toLowerCase().includes(t));
     }
     return rows;
-  }, [jobs, q, tab]);
+  }, [jobs, q]);
 
-  // Handler hành động (demo). Backend thực tế:
-  // - SUBMIT: POST /jobposts/{id}/submit-approval  { managerId }
-  // - CLOSE : POST /jobposts/{id}/close
-  // Việc phê duyệt của manager sẽ gọi API riêng → nếu APPROVE thì server đổi thẳng sang PUBLISHED.
-  const handleAction = (action, job) => {
-    setJobs((prev) =>
-      prev.map((j) => {
-        if (j.id !== job.id) return j;
-        if (action === "SUBMIT" && (j.status === "DRAFT" || j.status === "REJECTED")) {
-          return { ...j, status: "PENDING" };     // gửi duyệt
-        }
-        if (action === "CLOSE" && j.status === "PUBLISHED") {
-          return { ...j, status: "CLOSED" };      // đóng tin
-        }
-        return j;
-      })
-    );
+  // Handler hành động
+  const handleAction = async (action, job) => {
+    try {
+      let response;
+      
+      switch (action) {
+        case "SUBMIT":
+          response = await jobAPI.submitForApproval(job.id);
+          message.success('Đã gửi tin để phê duyệt!');
+          break;
+          
+        case "APPROVE":
+          response = await jobAPI.approveJob(job.id);
+          message.success('Đã phê duyệt tin tuyển dụng!');
+          break;
+          
+        case "REJECT":
+          // Show modal nhập lý do
+          Modal.confirm({
+            title: 'Từ chối tin tuyển dụng',
+            content: (
+              <div>
+                <p className="mb-2">Bạn có chắc muốn từ chối tin này?</p>
+                <textarea 
+                  id="reject-reason"
+                  className="w-full border rounded p-2" 
+                  placeholder="Lý do từ chối (tùy chọn)"
+                  rows={3}
+                />
+              </div>
+            ),
+            onOk: async () => {
+              const reason = document.getElementById('reject-reason')?.value || '';
+              await jobAPI.rejectJob(job.id, reason);
+              message.success('Đã từ chối tin tuyển dụng!');
+              fetchJobs();
+            },
+          });
+          return;
+          
+        case "CLOSE":
+          response = await jobAPI.closeJob(job.id);
+          message.success('Đã đóng tin tuyển dụng!');
+          break;
+          
+        default:
+          return;
+      }
+      
+      if (response?.success) {
+        fetchJobs(); // Refresh danh sách
+      }
+    } catch (error) {
+      console.error('Action error:', error);
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra!');
+    }
   };
 
   return (
     <AdminLayout title="Quản lý tin tuyển dụng">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-xl font-semibold text-slate-900">Danh sách tin tuyển dụng</h2>
-        <Link
-          to="/HR/createjob"
-          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700"
-        >
-          <Plus size={18} /> Tạo tin tuyển dụng
-        </Link>
+        <h2 className="text-xl font-semibold text-slate-900">
+          {user?.role === 'TPNS' ? 'Tin chờ phê duyệt' : 'Danh sách tin tuyển dụng'}
+        </h2>
+        {user?.role === 'HR' && (
+          <Link
+            to="/HR/createjob"
+            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700"
+          >
+            <Plus size={18} /> Tạo tin tuyển dụng
+          </Link>
+        )}
       </div>
 
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {[
-            { k: "ALL",       label: "Tất cả" },
-            { k: "DRAFT",     label: "Nháp" },
-            { k: "PENDING",   label: "Chờ duyệt" },
-            { k: "REJECTED",  label: "Bị từ chối" },
-            { k: "PUBLISHED", label: "Public" },
-            { k: "CLOSED",    label: "Đã đóng" },
-          ].map((t) => (
-            <button
-              key={t.k}
-              onClick={() => setTab(t.k)}
-              className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition
-                ${tab === t.k
-                  ? "bg-red-600 text-white border-red-700"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-red-50 hover:text-red-700"}`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {/* Chỉ HR mới có filter tabs */}
+        {user?.role === 'HR' && (
+          <div className="flex flex-wrap gap-2">
+            {[
+              { k: "ALL",     label: "Tất cả" },
+              { k: "DRAFT",   label: "Nháp" },
+              { k: "PENDING", label: "Chờ duyệt" },
+              { k: "REJECT",  label: "Bị từ chối" },
+              { k: "APPROVE", label: "Đã duyệt" },
+              { k: "CLOSE",   label: "Đã đóng" },
+            ].map((t) => (
+              <button
+                key={t.k}
+                onClick={() => setTab(t.k)}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition
+                  ${tab === t.k
+                    ? "bg-red-600 text-white border-red-700"
+                    : "bg-white text-slate-700 border-slate-200 hover:bg-red-50 hover:text-red-700"}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
 
-        <div className="relative w-full md:w-80">
+        <div className={`relative w-full ${user?.role === 'HR' ? 'md:w-80' : 'md:w-96'}`}>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -196,11 +309,21 @@ export default function JobsPost() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">Không có bản ghi nào.</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  {user?.role === 'TPNS' 
+                    ? 'Không có tin nào cần phê duyệt.' 
+                    : 'Không có bản ghi nào.'}
+                </td>
               </tr>
             ) : (
               filtered.map((job) => (
-                <JobRow key={job.id} job={job} onAction={handleAction} />
+                <JobRow 
+                  key={job.id} 
+                  job={job} 
+                  onAction={handleAction}
+                  userRole={user?.role}
+                  userId={user?.id}
+                />
               ))
             )}
           </tbody>

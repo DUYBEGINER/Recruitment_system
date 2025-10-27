@@ -6,7 +6,9 @@ import LoginPage from "./page/LoginPage";
 import EmployeeLoginPage from "./page/EmployeeLoginPage";
 import RegisterPage from "./page/RegisterPage";
 import CreateJob from "./page/admin/CreateJob";
+import EditJob from "./page/admin/EditJob";
 import JobsPost from "./page/admin/JobsPost";
+import JobDetail from "./page/admin/JobDetail";
 import UploadFile from "./page/admin/UploadFile";
 import Recruitment from "./page/Recruitment";
 
@@ -80,6 +82,22 @@ function App() {
         element={
           <HRRoute>
             <JobsPost />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/jobs/:id" 
+        element={
+          <HRRoute>
+            <JobDetail />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/jobs/:id/edit" 
+        element={
+          <HRRoute>
+            <EditJob />
           </HRRoute>
         } 
       />
