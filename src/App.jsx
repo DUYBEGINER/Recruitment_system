@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+
 import './App.css'
 import {Routes, Route, Link } from "react-router-dom";
 import Home from "./page/Home";
@@ -8,6 +8,8 @@ import RegisterPage from "./page/RegisterPage";
 import CreateJob from "./page/admin/CreateJob";
 import JobsPost from "./page/admin/JobsPost";
 import UploadFile from "./page/admin/UploadFile";
+import JobPage from "./page/JobPage";
+import JobDetail from './page/JobDetailPage';
 import '@ant-design/v5-patch-for-react-19';
 
 function App() {
@@ -21,6 +23,8 @@ function App() {
       <Route path="/HR/createjob" element={<CreateJob />} />
       <Route path="/HR/jobs" element={<JobsPost />} />
       <Route path="/HR/upload" element={<UploadFile />} />
+      <Route path="/job-page" element={<JobPage/>}/>
+      <Route path="/jobs/:id" element={<JobDetail />} />
     </Routes>
   );
 }

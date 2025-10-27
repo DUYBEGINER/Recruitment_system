@@ -18,12 +18,12 @@ export default function Header() {
 
         {/* Menu */}
         <nav className="hidden md:flex items-center space-x-6 text-gray-700 font-medium">
-          <a href="#" className="hover:text-red-600">Trang chủ</a>
-          <a href="#" className="hover:text-red-600">Về chúng tôi</a>
-          <a href="#" className="text-red-600 font-semibold">Tuyển dụng</a>
-          <a href="#" className="hover:text-red-600">Đãi ngộ</a>
-          <a href="#" className="hover:text-red-600">Sự kiện</a>
-          <a href="#" className="hover:text-red-600">Liên hệ</a>
+          <a href="/" className="hover:text-red-600">Trang chủ</a>
+          <a href="/" className="hover:text-red-600">Về chúng tôi</a>
+          <a href="/job-page" className="hover:text-red-600">Tuyển dụng</a>
+          <a href="/" className="hover:text-red-600">Đãi ngộ</a>
+          <a href="/" className="hover:text-red-600">Sự kiện</a>
+          <a href="/" className="hover:text-red-600">Liên hệ</a>
         </nav>
 
         {/* Right side */}

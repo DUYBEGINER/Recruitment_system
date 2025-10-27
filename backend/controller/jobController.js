@@ -39,27 +39,19 @@ export const createJobPost = async (req, res) => {
 /**
  * Lấy danh sách tin tuyển dụng
  */
+// DDuy start
 export const getJobPosts = async (req, res) => {
   try {
-    const filters = {
-      status: req.query.status,
-      search: req.query.q,
-      createdBy: req.query.createdBy
-    };
-
-    const jobs = await getAllJobs(filters);
-
+    const jobs = await getAllJobs();
     return res.status(200).json({
       success: true,
       data: jobs
     });
-
   } catch (error) {
-    console.error('Get jobs error:', error);
+    console.error('❌ Controller getAll error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Lỗi khi lấy danh sách tin tuyển dụng!',
-      error: error.message
+      message: 'Lỗi khi lấy danh sách bài đăng'
     });
   }
 };
@@ -75,7 +67,7 @@ export const getJobPostById = async (req, res) => {
     if (!job) {
       return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy tin tuyển dụng!'
+        message: "Không tìm thấy tin tuyển dụng!"
       });
     }
 
@@ -85,14 +77,15 @@ export const getJobPostById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get job by id error:', error);
+    console.error("Get job by id error:", error);
     return res.status(500).json({
       success: false,
-      message: 'Lỗi khi lấy thông tin tin tuyển dụng!',
+      message: "Lỗi khi lấy thông tin tin tuyển dụng!",
       error: error.message
     });
   }
 };
+// DDuy end
 
 /**
  * Cập nhật tin tuyển dụng

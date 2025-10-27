@@ -8,39 +8,39 @@ export const createJob = async (jobData) => {
   try {
     const pool = await connect();
     const result = await pool.request()
+      .input('employer_id', sql.Int, jobData.employerId || null)
       .input('title', sql.NVarChar, jobData.title)
+      .input('location', sql.NVarChar, jobData.location)
+      .input('job_type', sql.NVarChar, jobData.jobType)
+      .input('level', sql.NVarChar, jobData.level)
       .input('description', sql.NVarChar, jobData.description)
       .input('requirements', sql.NVarChar, jobData.requirements)
       .input('benefits', sql.NVarChar, jobData.benefits)
-      .input('location', sql.NVarChar, jobData.location)
-      .input('employmentType', sql.NVarChar, jobData.employmentType)
-      .input('experienceLevel', sql.NVarChar, jobData.experienceLevel)
-      .input('salaryMin', sql.Decimal(18, 2), jobData.salaryMin)
-      .input('salaryMax', sql.Decimal(18, 2), jobData.salaryMax)
-      .input('numberOfPositions', sql.Int, jobData.numberOfPositions)
+      .input('salary_min', sql.Decimal(18, 2), jobData.salaryMin || 0)
+      .input('salary_max', sql.Decimal(18, 2), jobData.salaryMax || 0)
+      .input('quantity', sql.Int, jobData.quantity || 1)
       .input('deadline', sql.Date, jobData.deadline)
-      .input('contactEmail', sql.NVarChar, jobData.contactEmail)
-      .input('contactPhone', sql.NVarChar, jobData.contactPhone)
+      .input('contact_email', sql.NVarChar, jobData.contactEmail)
+      .input('contact_phone', sql.NVarChar, jobData.contactPhone)
       .input('status', sql.NVarChar, jobData.status || 'PENDING')
-      .input('createdBy', sql.Int, jobData.createdBy)
       .query(`
-        INSERT INTO JobPosts (
-          title, description, requirements, benefits,
-          location, employmentType, experienceLevel,
-          salaryMin, salaryMax, numberOfPositions,
-          deadline, contactEmail, contactPhone,
-          status, createdBy, createdAt
+        INSERT INTO JobPosting (
+          employer_id, title, location, job_type, level,
+          description, requirements, benefits,
+          salary_min, salary_max, quantity,
+          deadline, contact_email, contact_phone,
+          status, created_at
         )
         OUTPUT INSERTED.*
         VALUES (
-          @title, @description, @requirements, @benefits,
-          @location, @employmentType, @experienceLevel,
-          @salaryMin, @salaryMax, @numberOfPositions,
-          @deadline, @contactEmail, @contactPhone,
-          @status, @createdBy, GETDATE()
+          @employer_id, @title, @location, @job_type, @level,
+          @description, @requirements, @benefits,
+          @salary_min, @salary_max, @quantity,
+          @deadline, @contact_email, @contact_phone,
+          @status, GETDATE()
         )
       `);
-    
+
     return result.recordset[0];
   } catch (error) {
     console.error('Error creating job:', error);
@@ -51,50 +51,23 @@ export const createJob = async (jobData) => {
 /**
  * Lấy danh sách tin tuyển dụng
  */
-export const getAllJobs = async (filters = {}) => {
+// DDUy start
+
+export const getAllJobs = async () => {
   try {
     const pool = await connect();
-    let query = `
-      SELECT 
-        id, title, description, requirements, benefits,
-        location, employmentType, experienceLevel,
-        salaryMin, salaryMax, numberOfPositions,
-        deadline, contactEmail, contactPhone,
-        status, createdBy, createdAt, updatedAt,
-        (SELECT COUNT(*) FROM Applications WHERE jobId = JobPosts.id) as applications
-      FROM JobPosts
-      WHERE 1=1
-    `;
-
-    const request = pool.request();
-
-    // Filter by status
-    if (filters.status && filters.status !== 'ALL') {
-      query += ' AND status = @status';
-      request.input('status', sql.NVarChar, filters.status);
-    }
-
-    // Search by title or location
-    if (filters.search) {
-      query += ' AND (title LIKE @search OR location LIKE @search)';
-      request.input('search', sql.NVarChar, `%${filters.search}%`);
-    }
-
-    // Filter by createdBy (for HR user)
-    if (filters.createdBy) {
-      query += ' AND createdBy = @createdBy';
-      request.input('createdBy', sql.Int, filters.createdBy);
-    }
-
-    query += ' ORDER BY createdAt DESC';
-
-    const result = await request.query(query);
+    const result = await pool.request().query(`
+      SELECT * FROM JobPosting
+      WHERE status= 'approve'
+      ORDER BY created_at DESC
+    `);
     return result.recordset;
   } catch (error) {
-    console.error('Error getting jobs:', error);
-    throw error;
+    console.error('❌ Error in getAllJobs:', error);
+    throw error; // Đẩy lỗi lên controller xử lý
   }
 };
+
 
 /**
  * Lấy tin tuyển dụng theo ID
@@ -106,22 +79,37 @@ export const getJobById = async (id) => {
       .input('id', sql.Int, id)
       .query(`
         SELECT 
-          id, title, description, requirements, benefits,
-          location, employmentType, experienceLevel,
-          salaryMin, salaryMax, numberOfPositions,
-          deadline, contactEmail, contactPhone,
-          status, createdBy, createdAt, updatedAt,
-          (SELECT COUNT(*) FROM Applications WHERE jobId = JobPosts.id) as applications
-        FROM JobPosts
-        WHERE id = @id
+          jp.id,
+          jp.title,
+          jp.description,
+          jp.requirements,
+          jp.benefits,
+          jp.location,
+          jp.job_type AS employmentType,
+          jp.level AS experienceLevel,
+          jp.salary_min AS salaryMin,
+          jp.salary_max AS salaryMax,
+          jp.quantity AS numberOfPositions,
+          jp.deadline,
+          jp.contact_email AS contactEmail,
+          jp.contact_phone AS contactPhone,
+          jp.status,
+          jp.created_at AS createdAt,
+          jp.updated_at AS updatedAt,
+          NULL AS companyName, 
+          NULL AS companyLogo,
+          (SELECT COUNT(*) FROM Application a WHERE a.job_id = jp.id) AS applications
+        FROM JobPosting jp
+        WHERE jp.id = @id
       `);
-    
+
     return result.recordset[0];
   } catch (error) {
     console.error('Error getting job by id:', error);
     throw error;
   }
 };
+// DDuy end
 
 /**
  * Cập nhật tin tuyển dụng
@@ -204,7 +192,7 @@ export const deleteJob = async (id) => {
     const result = await pool.request()
       .input('id', sql.Int, id)
       .query(`
-        DELETE FROM JobPosts
+        DELETE FROM JobPosting
         OUTPUT DELETED.*
         WHERE id = @id
       `);

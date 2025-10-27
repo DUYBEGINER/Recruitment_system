@@ -11,6 +11,7 @@ import authAPI from "./routes/authRoutes.js";
 import uploadAPI from "./routes/uploadRoutes.js";
 import jobAPI from "./routes/jobRoutes.js";
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -37,13 +38,14 @@ app.use("/api/users", usersAPI);
 app.use("/api/upload", uploadAPI);
 app.use("/api/jobs", jobAPI);
 
+
 // Health check endpoint
 app.get("/", (req, res) => {
   res.json({ message: "Recruitment System API is running!" });
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error(err.stack);
   res.status(500).json({
     success: false,

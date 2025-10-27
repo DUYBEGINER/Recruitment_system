@@ -1,0 +1,171 @@
+/* Thiết lập biến màu */
+:root {
+    --viettel-red: #e50000;
+    --text-color: #333;
+    --light-text: #555;
+    --background-gray: #f9f9f9;
+}
+
+/* 1. Section Container */
+.working-env-section {
+    width: 100%;
+    padding: 100px 0;
+    background-color: var(--background-gray);
+    /* Tái tạo ảnh nền mờ nhẹ, nếu cần */
+    /* background-image: url('/path/to/faint-bg.png'); */
+    background-repeat: repeat;
+}
+
+.working-env-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 50px;
+    align-items: flex-start; /* Nội dung bắt đầu từ trên cùng */
+}
+
+/* 2. Content Side (Trái) */
+.content-side {
+    flex-basis: 40%;
+    max-width: 450px;
+}
+
+.section-title {
+    font-size: 2.2em;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 25px;
+}
+
+.intro-text, .bottom-note {
+    font-size: 1em;
+    line-height: 1.6;
+    color: var(--light-text);
+    margin-bottom: 20px;
+}
+
+.stats-list {
+    list-style: none;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.stats-list li {
+    display: flex;
+    align-items: flex-start;
+    padding: 8px 0;
+    font-size: 0.95em;
+    color: var(--light-text);
+}
+
+.stat-icon {
+    font-size: 1.2em;
+    color: var(--viettel-red);
+    margin-right: 10px;
+}
+
+.stats-list strong {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.btn-red-primary {
+    background-color: var(--viettel-red);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-red-primary:hover {
+    background-color: #c90000;
+}
+
+/* 4. Image Side Carousel (Phải) */
+.image-side-carousel {
+    flex-basis: 60%;
+    display: grid;
+    /* Có thể tăng tỉ lệ ảnh chính so với gallery */
+    grid-template-columns: 3fr 1fr; 
+    grid-template-rows: repeat(2, 1fr); 
+    gap: 15px; 
+    position: relative;
+    transform: translateY(-50px); 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    /* TĂNG CHIỀU CAO TỔNG THỂ */
+    height: 650px; 
+}
+
+.image-main {
+    flex-basis: 70%;
+    position: relative;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    height: 650px;
+}
+
+.main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.image-number {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    color: white;
+    font-size: 1.5em;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.image-gallery {
+    flex-basis: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+}
+
+.gallery-item {
+    position: relative;
+    height: 100px; /* Chiều cao cố định cho ảnh gallery */
+    overflow: hidden; /* Ảnh xám mờ như mẫu */
+    transition: filter 0.3s;
+}
+
+.gallery-item:first-child {
+    filter: none; /* Hoặc để ảnh thứ hai là ảnh màu (01) */
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.carousel-arrow {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: var(--viettel-red);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5em;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(50%); /* Dịch nút xuống 1 nửa chiều cao của nó */
+}
