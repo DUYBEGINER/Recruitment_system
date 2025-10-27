@@ -331,7 +331,7 @@ function CreateJob() {
               <Col xs={24} md={12}>
                 <Form.Item
                   label="Số điện thoại liên hệ"
-                  name="contact_email"
+                  name="contact_phone"
                   rules={[
                     { required: true, message: 'Vui lòng nhập số điện thoại!' },
                     { pattern: /^[0-9]{10}$/, message: 'Số điện thoại phải có 10 chữ số!' },

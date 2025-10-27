@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import './App.css'
 import {Routes, Route, Link } from "react-router-dom";
 import Home from "./page/Home";
@@ -9,6 +8,12 @@ import CreateJob from "./page/admin/CreateJob";
 import EditJob from "./page/admin/EditJob";
 import JobsPost from "./page/admin/JobsPost";
 import JobDetail from "./page/admin/JobDetail";
+import Applications from "./page/admin/Applications";
+import ApplicationDetail from "./page/admin/ApplicationDetail";
+import Candidates from "./page/admin/Candidates";
+import CandidateDetail from "./page/admin/CandidateDetail";
+import Interviews from "./page/admin/Interviews";
+import InterviewDetail from "./page/admin/InterviewDetail";
 import UploadFile from "./page/admin/UploadFile";
 import Recruitment from "./page/Recruitment";
 
@@ -103,6 +108,54 @@ function App() {
         } 
       />
       <Route 
+        path="/HR/jobs/:jobId/applications" 
+        element={
+          <HRRoute>
+            <Applications />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/applications/:applicationId" 
+        element={
+          <HRRoute>
+            <ApplicationDetail />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/candidates" 
+        element={
+          <HRRoute>
+            <Candidates />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/candidates/:candidateId" 
+        element={
+          <HRRoute>
+            <CandidateDetail />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/interviews" 
+        element={
+          <HRRoute>
+            <Interviews />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/interviews/:interviewId" 
+        element={
+          <HRRoute>
+            <InterviewDetail />
+          </HRRoute>
+        } 
+      />
+      <Route 
         path="/HR/upload" 
         element={
           <HRRoute>
@@ -133,6 +186,54 @@ function App() {
         element={
           <TPNSRoute>
             <EditJob />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/jobs/:jobId/applications" 
+        element={
+          <TPNSRoute>
+            <Applications />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/applications/:applicationId" 
+        element={
+          <TPNSRoute>
+            <ApplicationDetail />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/candidates" 
+        element={
+          <TPNSRoute>
+            <Candidates />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/candidates/:candidateId" 
+        element={
+          <TPNSRoute>
+            <CandidateDetail />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/interviews" 
+        element={
+          <TPNSRoute>
+            <Interviews />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/interviews/:interviewId" 
+        element={
+          <TPNSRoute>
+            <InterviewDetail />
           </TPNSRoute>
         } 
       />

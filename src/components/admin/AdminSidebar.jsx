@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { Home, Book, Users, Upload, Settings } from "lucide-react"
+import { Home, Book, Users, Upload, Settings, UserCheck, Calendar } from "lucide-react"
 import useAuth from "../../hook/useAuth"
 
 const AdminSidebar = () => {
@@ -12,6 +12,8 @@ const AdminSidebar = () => {
   // Danh sách menu chung cho tất cả employer
   const commonNavItems = [
     { path: `${basePath}/jobs`, label: "Quản lí tin tuyển dụng", icon: Book },
+    { path: `${basePath}/candidates`, label: "Quản lý ứng viên", icon: UserCheck },
+    { path: `${basePath}/interviews`, label: "Lịch phỏng vấn", icon: Calendar },
   ]
 
   // Menu chỉ dành cho HR

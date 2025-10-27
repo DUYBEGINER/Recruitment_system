@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, Pencil, Eye, Send, Lock, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Search, Pencil, Eye, Send, Lock, CheckCircle, XCircle, FileText } from "lucide-react";
 import { message, Modal } from "antd";
 import AdminLayout from "../../layout/AdminLayout";
 import jobAPI from "../../api/jobAPI";
+import applicationAPI from "../../api/applicationAPI";
 import useAuth from "../../hook/useAuth";
 
 /** Badge trạng thái */
@@ -64,6 +65,21 @@ const getActionsByStatus = (status, role, isOwner) => {
 const JobRow = ({ job, onAction, userRole, userId, basePath }) => {
   const isOwner = job.employer_id === userId;
   const actions = getActionsByStatus(job.status, userRole, isOwner);
+  const [applicationCount, setApplicationCount] = useState(0);
+
+  useEffect(() => {
+    const loadApplicationCount = async () => {
+      try {
+        const result = await applicationAPI.countApplications(job.id);
+        if (result.success) {
+          setApplicationCount(result.data.count || 0);
+        }
+      } catch (error) {
+        console.error("Failed to load application count:", error);
+      }
+    };
+    loadApplicationCount();
+  }, [job.id]);
   
   return (
     <tr className="border-b last:border-0">
@@ -71,9 +87,22 @@ const JobRow = ({ job, onAction, userRole, userId, basePath }) => {
       <td className="px-4 py-3 text-slate-600">{job.location || "-"}</td>
       <td className="px-4 py-3 text-slate-600">{job.job_type || "-"}</td>
       <td className="px-4 py-3"><StatusBadge status={job.status} /></td>
-      <td className="px-4 py-3 text-slate-600">0</td>
+      <td className="px-4 py-3 text-center">
+        <span className="inline-flex items-center gap-1 text-slate-700 font-medium">
+          <FileText size={14} className="text-blue-600" />
+          {applicationCount}
+        </span>
+      </td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-2">
+          <Link
+            to={`${basePath}/jobs/${job.id}/applications`}
+            className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm border-blue-200 text-blue-600 hover:bg-blue-50"
+            title="Xem hồ sơ ứng tuyển"
+          >
+            <FileText size={16} /> Hồ sơ ({applicationCount})
+          </Link>
+          
           <Link
             to={`${basePath}/jobs/${job.id}`}
             className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm border-red-200 text-red-600 hover:bg-red-50"
