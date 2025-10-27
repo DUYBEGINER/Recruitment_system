@@ -24,7 +24,7 @@ export const register = async (req, res) => {
         const existed = await pool.request()
             .input("Email", sql.NVarChar, email)
             .input("Phone", sql.VarChar, phone)
-            .query(`SELECT 1 FROM Users WHERE Email = @Email OR Phone = @Phone`);
+            .query(`SELECT 1 FROM Candidate WHERE Email = @Email OR Phone = @Phone`);
         if (existed.recordset.length > 0) {
             return res.status(400).json({ success: false, message: "Email hoặc số điện thoại đã tồn tại" });
         }
@@ -41,7 +41,7 @@ export const register = async (req, res) => {
             .input("Role", sql.NVarChar, role)
             .input("Company_id", sql.Int, companyId)
             .query(`
-        INSERT INTO Users ([Fullname],[Email],[Password],[Phone],[Role],[Company_id])
+        INSERT INTO Candidate ([Fullname],[Email],[Password],[Phone],[Role],[Company_id])
         OUTPUT INSERTED.[User_id], INSERTED.[Fullname], INSERTED.[Email], INSERTED.[Phone], INSERTED.[Role], INSERTED.[Company_id]
         VALUES (@Fullname, @Email, @Password, @Phone, @Role, @Company_id)
       `);
@@ -87,7 +87,7 @@ export const login = async (req, res) => {
         const rs = await pool.request()
             .input("Email", sql.NVarChar, email)
             .query(`
-        SELECT TOP 1 * FROM Users
+        SELECT TOP 1 * FROM Candidate
         WHERE Email = @Email
       `);
 
@@ -138,7 +138,7 @@ export const getCurrentUser = async (req, res) => {
             .input("Id", sql.Int, userId)  // req.user.id lấy từ JWT (User_id)
             .query(`
         SELECT [User_id],[Fullname],[Email],[Phone],[Role],[Company_id]
-        FROM Users WHERE [User_id] = @Id
+        FROM Candidate WHERE [User_id] = @Id
       `);
 
         if (rs.recordset.length === 0) {
@@ -166,7 +166,7 @@ export const changePassword = async (req, res) => {
         const pool = await connect();
         const rs = await pool.request()
             .input("Id", sql.Int, req.user.id)
-            .query(`SELECT [Password] FROM Users WHERE [User_id] = @Id`);
+            .query(`SELECT [Password] FROM Candidate WHERE [User_id] = @Id`);
 
         if (rs.recordset.length === 0) {
             return res.status(404).json({ success: false, message: "User không tồn tại" });
@@ -180,7 +180,7 @@ export const changePassword = async (req, res) => {
         await pool.request()
             .input("Id", sql.Int, req.user.id)
             .input("Password", sql.NVarChar, hashed)
-            .query(`UPDATE Users SET [Password] = @Password WHERE [User_id] = @Id`);
+            .query(`UPDATE Candidate SET [Password] = @Password WHERE [User_id] = @Id`);
 
         res.status(200).json({ success: true, message: "Đổi mật khẩu thành công" });
     } catch (err) {

@@ -14,6 +14,10 @@ export default function JobListing() {
   // Filter states (basic set; expand as needed)
   const [searchText, setSearchText] = useState("");
   const [selectedEmployers, setSelectedEmployers] = useState([]);
+  const [selectedAreas, setSelectedAreas] = useState([]);
+  const [selectedIndustries, setSelectedIndustries] = useState([]);
+  const [selectedLevels, setSelectedLevels] = useState([]);
+  const [selectedWorkTimes, setSelectedWorkTimes] = useState([]);
   const [filtersAppliedAt, setFiltersAppliedAt] = useState(0); // bump to re-run
 
   const buildParams = () => {
@@ -212,6 +216,10 @@ export default function JobListing() {
               onClick={() => {
                 setSearchText("");
                 setSelectedEmployers([]);
+                setSelectedAreas([]);
+                setSelectedIndustries([]);
+                setSelectedLevels([]);
+                setSelectedWorkTimes([]);
                 setPage(1);
                 setFiltersAppliedAt((s) => s + 1);
               }}

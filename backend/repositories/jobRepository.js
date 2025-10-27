@@ -203,3 +203,4 @@ export const deleteJob = async (id) => {
     throw error;
   }
 };
+
