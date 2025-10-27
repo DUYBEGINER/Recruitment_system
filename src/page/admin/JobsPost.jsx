@@ -32,7 +32,7 @@ const getActionsByStatus = (status, role, isOwner) => {
       case "approve":
         return ["VIEW", "EDIT", "CLOSE"];
       case "close":
-        return ["VIEW"];
+        return ["VIEW", "EDIT"]; // TPNS có thể mở lại tin đã đóng
       default:
         return ["VIEW"];
     }
@@ -51,7 +51,7 @@ const getActionsByStatus = (status, role, isOwner) => {
       case "approve":
         return ["VIEW", "EDIT", "CLOSE"];
       case "close":
-        return ["VIEW"];
+        return ["VIEW", "EDIT"]; // HR có thể mở lại tin đã đóng của mình
       default:
         return ["VIEW"];
     }
@@ -61,7 +61,7 @@ const getActionsByStatus = (status, role, isOwner) => {
 };
 
 /** Hàng trong bảng */
-const JobRow = ({ job, onAction, userRole, userId }) => {
+const JobRow = ({ job, onAction, userRole, userId, basePath }) => {
   const isOwner = job.employer_id === userId;
   const actions = getActionsByStatus(job.status, userRole, isOwner);
   
@@ -75,7 +75,7 @@ const JobRow = ({ job, onAction, userRole, userId }) => {
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-2">
           <Link
-            to={`/HR/jobs/${job.id}`}
+            to={`${basePath}/jobs/${job.id}`}
             className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm border-red-200 text-red-600 hover:bg-red-50"
             title="Xem chi tiết"
           >
@@ -84,7 +84,7 @@ const JobRow = ({ job, onAction, userRole, userId }) => {
 
           {actions.includes("EDIT") && (
             <Link
-              to={`/HR/jobs/${job.id}/edit`}
+              to={`${basePath}/jobs/${job.id}/edit`}
               className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm border-slate-200 text-slate-600 hover:bg-slate-50"
               title="Chỉnh sửa"
             >
@@ -142,6 +142,9 @@ export default function JobsPost() {
   const [jobs, setJobs] = useState([]);
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("ALL");
+
+  // Xác định base path theo role
+  const basePath = user?.role === 'TPNS' ? '/TPNS' : '/HR';
 
   // Fetch jobs từ API
   const fetchJobs = async () => {
@@ -249,7 +252,7 @@ export default function JobsPost() {
         </h2>
         {user?.role === 'HR' && (
           <Link
-            to="/HR/createjob"
+            to={`${basePath}/createjob`}
             className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700"
           >
             <Plus size={18} /> Tạo tin tuyển dụng
@@ -323,6 +326,7 @@ export default function JobsPost() {
                   onAction={handleAction}
                   userRole={user?.role}
                   userId={user?.id}
+                  basePath={basePath}
                 />
               ))
             )}

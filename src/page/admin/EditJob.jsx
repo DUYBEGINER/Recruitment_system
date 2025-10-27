@@ -34,6 +34,9 @@ function EditJob() {
   const [error, setError] = useState(null);
   const [job, setJob] = useState(null);
 
+  // Xác định base path theo role
+  const basePath = user?.role === 'TPNS' ? '/TPNS' : '/HR';
+
   useEffect(() => {
     fetchJobData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,11 +54,6 @@ function EditJob() {
         // Kiểm tra quyền chỉnh sửa
         if (jobData.status === 'pending') {
           setError('Không thể chỉnh sửa tin đang chờ duyệt!');
-          return;
-        }
-
-        if (jobData.status === 'close') {
-          setError('Không thể chỉnh sửa tin đã đóng!');
           return;
         }
 
@@ -113,12 +111,20 @@ function EditJob() {
         contact_phone: values.contact_phone,
       };
 
+      // Nếu tin đang ở trạng thái close → chuyển về draft khi chỉnh sửa
+      if (job.status === 'close') {
+        jobData.status = 'draft';
+      }
+
       const response = await jobAPI.updateJob(id, jobData);
       
       if (response.success) {
-        message.success('Cập nhật tin tuyển dụng thành công!');
+        const successMsg = job.status === 'close' 
+          ? 'Cập nhật thành công! Tin đã được chuyển về trạng thái Nháp.'
+          : 'Cập nhật tin tuyển dụng thành công!';
+        message.success(successMsg);
         setTimeout(() => {
-          navigate('/HR/jobs');
+          navigate(`${basePath}/jobs`);
         }, 1000);
       } else {
         message.error(response.message || 'Cập nhật tin tuyển dụng thất bại!');
@@ -132,7 +138,7 @@ function EditJob() {
   };
 
   const handleBack = () => {
-    navigate('/HR/jobs');
+    navigate(`${basePath}/jobs`);
   };
 
   if (fetching) {
@@ -175,9 +181,21 @@ function EditJob() {
         
         <h2 className="text-2xl font-bold text-slate-900">Chỉnh sửa tin tuyển dụng</h2>
         <p className="text-slate-600 mt-1">
-          Cập nhật thông tin tin tuyển dụng của bạn
+          {job?.status === 'close' 
+            ? 'Tin này đã đóng. Sau khi chỉnh sửa, tin sẽ được chuyển về trạng thái Nháp và bạn có thể gửi duyệt lại.'
+            : 'Cập nhật thông tin tin tuyển dụng của bạn'}
         </p>
       </div>
+
+      {job?.status === 'close' && (
+        <Alert
+          message="Lưu ý"
+          description="Tin tuyển dụng này đã được đóng. Khi bạn lưu các thay đổi, trạng thái sẽ tự động chuyển về Nháp và bạn cần gửi duyệt lại để công khai tin."
+          type="warning"
+          showIcon
+          className="mb-4"
+        />
+      )}
 
       <Card>
         <Form

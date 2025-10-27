@@ -3,8 +3,9 @@ import { Navigate } from 'react-router-dom';
 import useAuth from '../../hook/useAuth';
 
 /**
- * HRRoute - Bảo vệ các trang dành cho Employer (TPNS/HR)
- * Chỉ cho phép truy cập khi đã đăng nhập VÀ có role TPNS hoặc HR
+ * HRRoute - Bảo vệ các trang dành RIÊNG cho HR
+ * Chỉ cho phép truy cập khi đã đăng nhập VÀ có role HR
+ * TPNS sẽ KHÔNG được vào các trang này (có routes riêng /TPNS/...)
  */
 const HRRoute = ({ children }) => {
   const { user, authenticate, loading } = useAuth();
@@ -27,15 +28,20 @@ const HRRoute = ({ children }) => {
     return <Navigate to="/employee-login" replace />;
   }
 
-  // Đã đăng nhập nhưng không phải TPNS/HR -> redirect về home
-  const isEmployer = user?.role === 'TPNS' || user?.role === 'HR';
-  if (!isEmployer) {
-    console.log("HRRoute - Not employer role, redirecting to /");
+  // Đã đăng nhập nhưng không phải HR -> redirect
+  if (user?.role !== 'HR') {
+    // Nếu là TPNS thì redirect về /TPNS/jobs
+    if (user?.role === 'TPNS') {
+      console.log("HRRoute - TPNS role, redirecting to /TPNS/jobs");
+      return <Navigate to="/TPNS/jobs" replace />;
+    }
+    // Các role khác redirect về home
+    console.log("HRRoute - Not HR role, redirecting to /");
     return <Navigate to="/" replace />;
   }
 
-  // Là TPNS/HR -> cho phép truy cập
-  console.log(`HRRoute - ${user.role} access granted`);
+  // Là HR -> cho phép truy cập
+  console.log("HRRoute - HR access granted");
   return children;
 };
 

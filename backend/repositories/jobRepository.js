@@ -126,7 +126,7 @@ export const getJobById = async (id) => {
 export const updateJob = async (id, jobData) => {
   try {
     const pool = await connect();
-    const result = await pool.request()
+    const request = pool.request()
       .input('id', sql.Int, id)
       .input('title', sql.NVarChar, jobData.title)
       .input('location', sql.NVarChar, jobData.location)
@@ -140,27 +140,39 @@ export const updateJob = async (id, jobData) => {
       .input('quantity', sql.Int, jobData.quantity)
       .input('deadline', sql.Date, jobData.deadline)
       .input('contact_email', sql.NVarChar, jobData.contact_email)
-      .input('contact_phone', sql.NVarChar, jobData.contact_phone)
-      .query(`
-        UPDATE JobPosting
-        SET 
-          title = @title,
-          location = @location,
-          job_type = @job_type,
-          level = @level,
-          description = @description,
-          requirements = @requirements,
-          benefits = @benefits,
-          salary_min = @salary_min,
-          salary_max = @salary_max,
-          quantity = @quantity,
-          deadline = @deadline,
-          contact_email = @contact_email,
-          contact_phone = @contact_phone,
-          updated_at = GETDATE()
-        OUTPUT INSERTED.*
-        WHERE id = @id
-      `);
+      .input('contact_phone', sql.NVarChar, jobData.contact_phone);
+
+    let query = `
+      UPDATE JobPosting
+      SET 
+        title = @title,
+        location = @location,
+        job_type = @job_type,
+        level = @level,
+        description = @description,
+        requirements = @requirements,
+        benefits = @benefits,
+        salary_min = @salary_min,
+        salary_max = @salary_max,
+        quantity = @quantity,
+        deadline = @deadline,
+        contact_email = @contact_email,
+        contact_phone = @contact_phone,
+        updated_at = GETDATE()
+    `;
+
+    // Nếu có status trong jobData thì cập nhật luôn (cho phép close → draft)
+    if (jobData.status) {
+      request.input('status', sql.NVarChar, jobData.status);
+      query += `, status = @status`;
+    }
+
+    query += `
+      OUTPUT INSERTED.*
+      WHERE id = @id
+    `;
+
+    const result = await request.query(query);
     
     return result.recordset[0];
   } catch (error) {

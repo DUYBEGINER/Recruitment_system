@@ -26,6 +26,9 @@ export default function JobDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Xác định base path theo role
+  const basePath = user?.role === 'TPNS' ? '/TPNS' : '/HR';
+
   useEffect(() => {
     fetchJobDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,7 +83,7 @@ export default function JobDetail() {
           type="error"
           showIcon
         />
-        <Button className="mt-4" onClick={() => navigate('/HR/jobs')}>
+        <Button className="mt-4" onClick={() => navigate(`${basePath}/jobs`)}>
           Quay lại danh sách
         </Button>
       </AdminLayout>
@@ -88,15 +91,15 @@ export default function JobDetail() {
   }
 
   const isOwner = job.employer_id === user?.id;
-  const canEdit = (job.status === 'draft' || job.status === 'reject' || job.status === 'approve') && 
-                  (user?.role === 'TPNS' || isOwner);
+  // Cho phép edit: draft, reject, approve, close (trừ pending)
+  const canEdit = job.status !== 'pending' && (user?.role === 'TPNS' || isOwner);
 
   return (
     <AdminLayout title={`Chi tiết: ${job.title}`}>
       <div className="mb-6 flex items-center justify-between">
         <Button
           icon={<ArrowLeft size={16} />}
-          onClick={() => navigate('/HR/jobs')}
+          onClick={() => navigate(`${basePath}/jobs`)}
         >
           Quay lại danh sách
         </Button>

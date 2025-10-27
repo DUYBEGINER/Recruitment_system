@@ -16,6 +16,7 @@ import Recruitment from "./page/Recruitment";
 import AuthRoute from "./components/ProtectedRoute/AuthRoute";
 import PrivateRoute from "./components/ProtectedRoute/PrivateRoute";
 import HRRoute from "./components/ProtectedRoute/HRRoute";
+import TPNSRoute from "./components/ProtectedRoute/TPNSRoute";
 import PublicRoute from "./components/ProtectedRoute/PublicRoute";
 
 import '@ant-design/v5-patch-for-react-19';
@@ -107,6 +108,32 @@ function App() {
           <HRRoute>
             <UploadFile />
           </HRRoute>
+        } 
+      />
+
+      {/* TPNS routes - Chỉ TPNS (Trưởng phòng NS) mới truy cập được */}
+      <Route 
+        path="/TPNS/jobs" 
+        element={
+          <TPNSRoute>
+            <JobsPost />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/jobs/:id" 
+        element={
+          <TPNSRoute>
+            <JobDetail />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/jobs/:id/edit" 
+        element={
+          <TPNSRoute>
+            <EditJob />
+          </TPNSRoute>
         } 
       />
     </Routes>

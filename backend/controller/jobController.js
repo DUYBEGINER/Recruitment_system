@@ -126,13 +126,8 @@ export const updateJobPost = async (req, res) => {
       });
     }
 
-    // Không cho phép sửa tin đã đóng
-    if (existingJob.status === 'close') {
-      return res.status(400).json({
-        success: false,
-        message: 'Không thể sửa tin đã đóng!'
-      });
-    }
+    // Cho phép sửa tin đã đóng → sẽ chuyển về draft
+    // Frontend sẽ gửi status: 'draft' trong req.body khi muốn mở lại tin
 
     const updatedJob = await updateJob(id, req.body);
 

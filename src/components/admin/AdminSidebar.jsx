@@ -6,19 +6,22 @@ const AdminSidebar = () => {
   const location = useLocation()
   const { user } = useAuth()
 
+  // Xác định base path theo role: TPNS → /TPNS, HR → /HR
+  const basePath = user?.role === 'TPNS' ? '/TPNS' : '/HR'
+
   // Danh sách menu chung cho tất cả employer
   const commonNavItems = [
-    { path: "/HR/jobs", label: "Quản lí tin tuyển dụng", icon: Book },
+    { path: `${basePath}/jobs`, label: "Quản lí tin tuyển dụng", icon: Book },
   ]
 
   // Menu chỉ dành cho HR
   const hrOnlyItems = [
-    { path: "/HR/createjob", label: "Tạo tin tuyển dụng", icon: Upload },
+    { path: `${basePath}/createjob`, label: "Tạo tin tuyển dụng", icon: Upload },
   ]
 
   // Menu chỉ dành cho TPNS
   const tpnsOnlyItems = [
-    { path: "/HR/settings", label: "Cài đặt hệ thống", icon: Settings },
+    { path: `${basePath}/settings`, label: "Cài đặt hệ thống", icon: Settings },
   ]
 
   // Kết hợp menu dựa vào role

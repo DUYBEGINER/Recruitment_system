@@ -16,6 +16,7 @@ import {
 import { Save, ArrowLeft } from 'lucide-react';
 import AdminLayout from '../../layout/AdminLayout';
 import jobAPI from '../../api/jobAPI';
+import useAuth from '../../hook/useAuth';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -23,7 +24,11 @@ const { Option } = Select;
 function CreateJob() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Xác định base path theo role
+  const basePath = user?.role === 'TPNS' ? '/TPNS' : '/HR';
 
   // Xử lý submit form
   const handleSubmit = async (values) => {
@@ -55,7 +60,7 @@ function CreateJob() {
         form.resetFields();
         // Chuyển về trang danh sách jobs
         setTimeout(() => {
-          navigate('/HR/jobs');
+          navigate(`${basePath}/jobs`);
         }, 1000);
       } else {
         message.error(response.message || 'Tạo tin tuyển dụng thất bại!');
@@ -70,7 +75,7 @@ function CreateJob() {
 
   // Xử lý quay lại
   const handleBack = () => {
-    navigate('/HR/jobs');
+    navigate(`${basePath}/jobs`);
   };
 
   return (

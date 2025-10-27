@@ -31,7 +31,7 @@ const TPNSRoute = ({ children }) => {
   // Đã đăng nhập nhưng không phải TPNS -> redirect về /HR/jobs
   if (user?.role !== 'TPNS') {
     console.log("TPNSRoute - Not TPNS role, redirecting to /HR/jobs");
-    return <Navigate to="/HR/jobs" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Là TPNS -> cho phép truy cập

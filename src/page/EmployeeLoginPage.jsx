@@ -53,10 +53,12 @@ function EmployeeLoginPage() {
         if (result.data && result.data.user) {
           setUser(result.data.user);
           setAuthenticate(true);
+          
+          // Chuyển hướng dựa trên role: TPNS → /TPNS/jobs, HR → /HR/jobs
+          console.log("User role:", result.data.user.role);
+          const redirectPath = result.data.user.role === 'TPNS' ? '/TPNS/jobs' : '/HR/jobs';
+          navigate(redirectPath, { replace: true });
         }
-        
-        // Chuyển hướng ngay đến trang HR
-        navigate("/HR/jobs", { replace: true });
       } else {
         message.error(result.message || "Đăng nhập thất bại!");
       }
