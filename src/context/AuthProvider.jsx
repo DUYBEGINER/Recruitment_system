@@ -11,8 +11,6 @@ function AuthProvider({ children }) {
 
   console.log("user", user);
 
-  console.log("loading", loading);
-
   const checkUserSession = useCallback(async () => {
     try {
       const response = await checkSession();
@@ -20,11 +18,11 @@ function AuthProvider({ children }) {
 
       // if (!isMountedRef.current) return;
 
-      if (response?.success && response?.data) {
-        setUser(response.data);
+      if (response?.success && response?.data?.user) {
+        setUser(response.data.user);
         setAuthenticate(true);
         setError(null);
-        console.log("User session valid:", response.data);
+        console.log("User session valid:", response.data.user);
       } else {
         console.log("No valid user session");
         setAuthenticate(false);

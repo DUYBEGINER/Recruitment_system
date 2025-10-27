@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useMessage } from "../context/MessageProvider";
 import { loginRequest } from "../api/authAPI";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import useAuth from "../hook/useAuth";
 
 function LoginPage() {
   // --- State để lưu giá trị các input ---
@@ -12,7 +14,9 @@ function LoginPage() {
   });
 
   const message = useMessage();
-
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
+  
   console.log("formData", formData);
 
   // --- Xử lý khi thay đổi input ---
@@ -32,6 +36,8 @@ function LoginPage() {
       const result = await loginRequest(email, password);
       console.log("Kết quả đăng nhập:", result);
       message.success(result.message || "Đăng nhập thành công!");
+      setUser(result.data.user);
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);
       message.error(error.message || "Lỗi đăng nhập");

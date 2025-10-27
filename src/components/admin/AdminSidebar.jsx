@@ -1,22 +1,56 @@
 import { Link, useLocation } from "react-router-dom"
-import { Home, Book, Users, Upload } from "lucide-react"
+import { Home, Book, Users, Upload, Settings, UserCheck, Calendar } from "lucide-react"
+import useAuth from "../../hook/useAuth"
 
 const AdminSidebar = () => {
   const location = useLocation()
+  const { user } = useAuth()
 
-  const navItems = [
-    { path: "/HR", label: "Dashboard", icon: Home },
-    { path: "/HR/jobs", label: "Quản lí tin tuyển dụng", icon: Book },
-    { path: "/HR/upload", label: "Test Upload File", icon: Upload },
+  // Xác định base path theo role: TPNS → /TPNS, HR → /HR
+  const basePath = user?.role === 'TPNS' ? '/TPNS' : '/HR'
+
+  // Danh sách menu chung cho tất cả employer
+  const commonNavItems = [
+    { path: `${basePath}/jobs`, label: "Quản lí tin tuyển dụng", icon: Book },
+    { path: `${basePath}/candidates`, label: "Quản lý ứng viên", icon: UserCheck },
+    { path: `${basePath}/interviews`, label: "Lịch phỏng vấn", icon: Calendar },
   ]
+
+  // Menu chỉ dành cho HR
+  const hrOnlyItems = [
+    { path: `${basePath}/createjob`, label: "Tạo tin tuyển dụng", icon: Upload },
+  ]
+
+  // Menu chỉ dành cho TPNS
+  const tpnsOnlyItems = [
+    { path: `${basePath}/settings`, label: "Cài đặt hệ thống", icon: Settings },
+  ]
+
+  // Kết hợp menu dựa vào role
+  const navItems = user?.role === 'TPNS' 
+    ? [...commonNavItems, ...tpnsOnlyItems]
+    : [...commonNavItems, ...hrOnlyItems]
 
   return (
     <aside className="w-64 bg-gray-800 min-h-screen max-h-screen flex flex-col sticky top-0 z-20">
       {/* Logo */}
-      <div className="p-6 flex items-center gap-3">
-        {/* <img src="/logo.png" alt="Logo" className="w-10 h-10"/> */}
+      <div className="p-6 flex items-center gap-3 border-b border-gray-700">
         <span className="font-semibold text-lg text-white">PDD Tuyển Dụng</span>
       </div>
+
+      {/* User Role Badge */}
+      {user && (
+        <div className="px-6 py-4 border-b border-gray-700">
+          <p className="text-xs text-gray-400 mb-1">Vai trò</p>
+          <div className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+            user.role === 'TPNS' 
+              ? 'bg-purple-900 text-purple-300' 
+              : 'bg-blue-900 text-blue-300'
+          }`}>
+            {user.role === 'TPNS' ? 'Trưởng phòng NS' : 'Nhân viên HR'}
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4">
@@ -38,6 +72,13 @@ const AdminSidebar = () => {
           )
         })}
       </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-700">
+        <p className="text-xs text-gray-500 text-center">
+          © 2025 PDD Tuyển Dụng
+        </p>
+      </div>
     </aside>
   )
 }

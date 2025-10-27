@@ -20,13 +20,13 @@ export const patterns = {
 
 // Hàm validate đăng ký
 export function validateSignup(form) {
-    // form: { email, password, confirmPassword, displayName }
+    // form: { email, password, confirmPassword, full_name, phone }
     const errors = {};
 
     const email = (form.email || "").trim();
     const password = form.password || "";
     const confirmPassword = form.confirmPassword || "";
-    const displayName = (form.fullname || "").trim();
+    const displayName = (form.full_name || "").trim();
     const phone = (form.phone || "").trim();
 
     if (!email || !patterns.email.test(email)) {

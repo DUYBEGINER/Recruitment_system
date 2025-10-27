@@ -1,11 +1,15 @@
 import { Globe } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hook/useAuth";
 import {Link} from "react-router-dom";
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
+  console.log("Header - Current user:", user);
+  // Helper function để check active link
+  const isActive = (path) => location.pathname === path;
 
   return (
     <header className="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
@@ -18,12 +22,42 @@ export default function Header() {
 
         {/* Menu */}
         <nav className="hidden md:flex items-center space-x-6 text-gray-700 font-medium">
-          <a href="/" className="hover:text-red-600">Trang chủ</a>
-          <a href="/" className="hover:text-red-600">Về chúng tôi</a>
-          <a href="/job-page" className="hover:text-red-600">Tuyển dụng</a>
-          <a href="/" className="hover:text-red-600">Đãi ngộ</a>
-          <a href="/" className="hover:text-red-600">Sự kiện</a>
-          <a href="/" className="hover:text-red-600">Liên hệ</a>
+          <Link 
+            to="/" 
+            className={`hover:text-red-600 transition-colors ${isActive('/') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Trang chủ
+          </Link>
+          <Link 
+            to="/about" 
+            className={`hover:text-red-600 transition-colors ${isActive('/about') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Về chúng tôi
+          </Link>
+          <Link 
+            to="/job-page" 
+            className={`hover:text-red-600 transition-colors ${isActive('/job-page') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Tuyển dụng
+          </Link>
+          <Link 
+            to="/benefits" 
+            className={`hover:text-red-600 transition-colors ${isActive('/benefits') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Đãi ngộ
+          </Link>
+          <Link 
+            to="/events" 
+            className={`hover:text-red-600 transition-colors ${isActive('/events') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Sự kiện
+          </Link>
+          <Link 
+            to="/contact" 
+            className={`hover:text-red-600 transition-colors ${isActive('/contact') ? 'text-red-600 font-semibold' : ''}`}
+          >
+            Liên hệ
+          </Link>
         </nav>
 
         {/* Right side */}
@@ -40,7 +74,14 @@ export default function Header() {
           </button>
         </div>) : (
         <div className="flex items-center space-x-3">
-          <span className="text-gray-700 font-medium">Xin chào, {user.fullname}</span>
+          <span className="text-gray-700 font-medium">
+            Xin chào, {user?.full_name || user?.username || user?.email}
+            {user.role && (
+              <span className="ml-2 text-xs px-2 py-1 rounded-full bg-red-100 text-red-600 font-semibold">
+                {user.role === 'TPNS' ? 'Trưởng phòng NS' : user.role}
+              </span>
+            )}
+          </span>
           <button onClick={logout} className="border border-red-500 text-red-600 font-medium rounded-full px-4 py-1.5 hover:bg-red-50 transition">
             Đăng xuất
           </button>

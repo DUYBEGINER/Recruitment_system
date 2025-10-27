@@ -10,6 +10,9 @@ import usersAPI from "./routes/userRoutes.js";
 import authAPI from "./routes/authRoutes.js";
 import uploadAPI from "./routes/uploadRoutes.js";
 import jobAPI from "./routes/jobRoutes.js";
+import applicationAPI from "./routes/applicationRoutes.js";
+import candidateAPI from "./routes/candidateRoutes.js";
+import interviewAPI from "./routes/interviewRoutes.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +39,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'CV_Storage')));
 app.use("/auth", authAPI);
 app.use("/api/users", usersAPI);
 app.use("/api/upload", uploadAPI);
-app.use("/api/jobs", jobAPI);
+app.use("/jobs", jobAPI); // Đổi từ /api/jobs → /jobs
+app.use("/applications", applicationAPI); // Routes cho quản lý hồ sơ ứng tuyển
+app.use("/candidates", candidateAPI); // Routes cho quản lý ứng viên
+app.use("/interviews", interviewAPI); // Routes cho quản lý lịch phỏng vấn
 
 
 // Health check endpoint

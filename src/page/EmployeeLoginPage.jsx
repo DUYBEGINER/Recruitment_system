@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMessage } from "../context/MessageProvider";
 import authAPI from "../api/authAPI";
-import MainLayout from "../layout/MainLayout";
+import useAuth from "../hook/useAuth";
 
 function EmployeeLoginPage() {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ function EmployeeLoginPage() {
     rememberMe: false,
   });
 
+  const { setUser, setAuthenticate } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // --- Xử lý khi thay đổi input ---
@@ -44,22 +45,20 @@ function EmployeeLoginPage() {
     try {
       setLoading(true);
       const result = await authAPI.employeeLogin(formData.username, formData.password);
-      
+      console.log("Kết quả đăng nhập nhân viên:", result);
       if (result.success) {
         message.success(result.message || "Đăng nhập thành công!");
         
-        // Lưu token và thông tin user
-        if (result.token) {
-          localStorage.setItem("token", result.token);
+        // Set user và authenticate state
+        if (result.data && result.data.user) {
+          setUser(result.data.user);
+          setAuthenticate(true);
+          
+          // Chuyển hướng dựa trên role: TPNS → /TPNS/jobs, HR → /HR/jobs
+          console.log("User role:", result.data.user.role);
+          const redirectPath = result.data.user.role === 'TPNS' ? '/TPNS/jobs' : '/HR/jobs';
+          navigate(redirectPath, { replace: true });
         }
-        if (result.user) {
-          localStorage.setItem("user", JSON.stringify(result.user));
-        }
-        
-        // Chuyển hướng đến trang admin
-        setTimeout(() => {
-          navigate("/HR/jobs");
-        }, 500);
       } else {
         message.error(result.message || "Đăng nhập thất bại!");
       }
@@ -72,8 +71,7 @@ function EmployeeLoginPage() {
   };
 
   return (
-    <MainLayout>
-    <div className="min-h-screen flex items-center justify-center  from-red-50 to-orange-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 border-t-4 border-red-600">
         {/* Header */}
         <div className="text-center mb-8">
@@ -188,7 +186,6 @@ function EmployeeLoginPage() {
         </div>
       </div>
     </div>
-    </MainLayout>
   );
 }
 

@@ -5,10 +5,11 @@ import { validateSignup } from "../utils/validatorInput";
 import { useMessage } from "../context/MessageProvider";
 import { registerRequest } from "../api/authAPI";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function RegisterPage() {
   const [formData, setFormData] = useState({
-    fullname: "",
+    full_name: "",
     email: "",
     phone: "",
     password: "",
@@ -20,6 +21,7 @@ function RegisterPage() {
   const [errors, setErrors] = useState({}); // <-- lỗi theo từng field
 
   const message = useMessage();
+  const navigate = useNavigate();
 
   // helper áp dụng class theo trạng thái lỗi
   const inputClass = (hasError) =>
@@ -39,8 +41,8 @@ function RegisterPage() {
     const nextErrors = validateSignup(next).errors;
     setErrors((prev) => ({
       ...prev,
-      // fullname dùng key "displayName" trong validator của bạn
-      ...(name === "fullname"
+      // full_name dùng key "displayName" trong validator của bạn
+      ...(name === "full_name"
         ? { displayName: nextErrors.displayName }
         : { [name]: nextErrors[name] }),
     }));
@@ -57,6 +59,7 @@ function RegisterPage() {
         console.log("Kết quả đăng ký:", result);
         message.success(result.message || "Đăng ký thành công!");
         setErrors({});
+        navigate("/login");
       } catch (err) {
         console.error("Lỗi đăng ký:", err);
         message.error(err.message || "Lỗi server khi đăng ký");
@@ -83,8 +86,8 @@ function RegisterPage() {
               </label>
               <input
                 type="text"
-                name="fullname"
-                value={formData.fullname}
+                name="full_name"
+                value={formData.full_name}
                 onChange={handleChange}
                 className={inputClass(Boolean(errors.displayName))}
                 placeholder="Nhập họ và tên"

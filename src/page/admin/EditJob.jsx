@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Form,
   Input,
@@ -12,8 +12,11 @@ import {
   Space,
   Row,
   Col,
+  Spin,
+  Alert,
 } from 'antd';
 import { Save, ArrowLeft } from 'lucide-react';
+import dayjs from 'dayjs';
 import AdminLayout from '../../layout/AdminLayout';
 import jobAPI from '../../api/jobAPI';
 import useAuth from '../../hook/useAuth';
@@ -21,16 +24,72 @@ import useAuth from '../../hook/useAuth';
 const { TextArea } = Input;
 const { Option } = Select;
 
-function CreateJob() {
+function EditJob() {
+  const { id } = useParams();
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState(null);
+  const [job, setJob] = useState(null);
 
   // Xác định base path theo role
   const basePath = user?.role === 'TPNS' ? '/TPNS' : '/HR';
 
-  // Xử lý submit form
+  useEffect(() => {
+    fetchJobData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const fetchJobData = async () => {
+    try {
+      setFetching(true);
+      const response = await jobAPI.getJobByIdEmployer(id);
+      
+      if (response.success && response.data) {
+        const jobData = response.data;
+        setJob(jobData);
+
+        // Kiểm tra quyền chỉnh sửa
+        if (jobData.status === 'pending') {
+          setError('Không thể chỉnh sửa tin đang chờ duyệt!');
+          return;
+        }
+
+        // Kiểm tra quyền sở hữu (HR chỉ sửa tin của mình)
+        if (user?.role === 'HR' && jobData.employer_id !== user.id) {
+          setError('Bạn không có quyền chỉnh sửa tin này!');
+          return;
+        }
+
+        // Set form values
+        form.setFieldsValue({
+          title: jobData.title,
+          location: jobData.location,
+          job_type: jobData.job_type,
+          level: jobData.level,
+          description: jobData.description,
+          requirements: jobData.requirements,
+          benefits: jobData.benefits,
+          salary_min: jobData.salary_min,
+          salary_max: jobData.salary_max,
+          quantity: jobData.quantity,
+          deadline: jobData.deadline ? dayjs(jobData.deadline) : null,
+          contact_email: jobData.contact_email,
+          contact_phone: jobData.contact_phone,
+        });
+      } else {
+        setError('Không tìm thấy tin tuyển dụng!');
+      }
+    } catch (err) {
+      console.error('Error fetching job:', err);
+      setError(err.response?.data?.message || 'Lỗi khi tải thông tin tin tuyển dụng!');
+    } finally {
+      setFetching(false);
+    }
+  };
+
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
@@ -50,36 +109,67 @@ function CreateJob() {
         deadline: values.deadline ? values.deadline.format('YYYY-MM-DD') : null,
         contact_email: values.contact_email,
         contact_phone: values.contact_phone,
-        status: 'draft', // Trạng thái mặc định là draft
       };
 
-      const response = await jobAPI.createJob(jobData);
+      // Nếu tin đang ở trạng thái close → chuyển về draft khi chỉnh sửa
+      if (job.status === 'close') {
+        jobData.status = 'draft';
+      }
+
+      const response = await jobAPI.updateJob(id, jobData);
       
       if (response.success) {
-        message.success('Tạo tin tuyển dụng thành công! Tin đang ở trạng thái nháp.');
-        form.resetFields();
-        // Chuyển về trang danh sách jobs
+        const successMsg = job.status === 'close' 
+          ? 'Cập nhật thành công! Tin đã được chuyển về trạng thái Nháp.'
+          : 'Cập nhật tin tuyển dụng thành công!';
+        message.success(successMsg);
         setTimeout(() => {
           navigate(`${basePath}/jobs`);
         }, 1000);
       } else {
-        message.error(response.message || 'Tạo tin tuyển dụng thất bại!');
+        message.error(response.message || 'Cập nhật tin tuyển dụng thất bại!');
       }
     } catch (error) {
-      console.error('Create job error:', error);
-      message.error(error.response?.data?.message || 'Lỗi khi tạo tin tuyển dụng!');
+      console.error('Update job error:', error);
+      message.error(error.response?.data?.message || 'Lỗi khi cập nhật tin tuyển dụng!');
     } finally {
       setLoading(false);
     }
   };
 
-  // Xử lý quay lại
   const handleBack = () => {
     navigate(`${basePath}/jobs`);
   };
 
+  if (fetching) {
+    return (
+      <AdminLayout title="Chỉnh sửa tin tuyển dụng">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Spin size="large" tip="Đang tải thông tin..." />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminLayout title="Chỉnh sửa tin tuyển dụng">
+        <Alert
+          message="Không thể chỉnh sửa"
+          description={error}
+          type="error"
+          showIcon
+          className="mb-4"
+        />
+        <Button onClick={handleBack}>
+          Quay lại danh sách
+        </Button>
+      </AdminLayout>
+    );
+  }
+
   return (
-    <AdminLayout title="Tạo tin tuyển dụng">
+    <AdminLayout title={`Chỉnh sửa: ${job?.title}`}>
       <div className="mb-6">
         <Button
           icon={<ArrowLeft size={16} />}
@@ -89,11 +179,23 @@ function CreateJob() {
           Quay lại danh sách
         </Button>
         
-        <h2 className="text-2xl font-bold text-slate-900">Tạo tin tuyển dụng mới</h2>
+        <h2 className="text-2xl font-bold text-slate-900">Chỉnh sửa tin tuyển dụng</h2>
         <p className="text-slate-600 mt-1">
-          Tin tuyển dụng sẽ ở trạng thái <span className="font-semibold text-gray-600">Nháp</span> sau khi tạo. Bạn có thể gửi duyệt sau.
+          {job?.status === 'close' 
+            ? 'Tin này đã đóng. Sau khi chỉnh sửa, tin sẽ được chuyển về trạng thái Nháp và bạn có thể gửi duyệt lại.'
+            : 'Cập nhật thông tin tin tuyển dụng của bạn'}
         </p>
       </div>
+
+      {job?.status === 'close' && (
+        <Alert
+          message="Lưu ý"
+          description="Tin tuyển dụng này đã được đóng. Khi bạn lưu các thay đổi, trạng thái sẽ tự động chuyển về Nháp và bạn cần gửi duyệt lại để công khai tin."
+          type="warning"
+          showIcon
+          className="mb-4"
+        />
+      )}
 
       <Card>
         <Form
@@ -275,8 +377,7 @@ function CreateJob() {
               <Col xs={24} md={12}>
                 <Form.Item
                   label="Số lượng tuyển"
-                  name="numberOfPositions"
-                  initialValue={1}
+                  name="quantity"
                   rules={[{ required: true, message: 'Vui lòng nhập số lượng!' }]}
                 >
                   <InputNumber
@@ -358,7 +459,7 @@ function CreateJob() {
                 icon={<Save size={18} />}
                 className="bg-red-600 hover:bg-red-700"
               >
-                {loading ? 'Đang tạo...' : 'Tạo tin tuyển dụng'}
+                {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
               
               <Button
@@ -376,4 +477,4 @@ function CreateJob() {
   );
 }
 
-export default CreateJob;
+export default EditJob;
