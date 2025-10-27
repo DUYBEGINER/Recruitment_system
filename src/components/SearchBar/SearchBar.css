@@ -1,0 +1,71 @@
+/* 1. Search Bar Container */
+.search-bar-container {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 50px; 
+    padding: 10px 20px;
+    /* Bóng đổ nhẹ hơn hoặc không có */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+    width: 700px; 
+    max-width: 90%; 
+}
+
+/* 2. Search Fields (Công việc và Khu vực) */
+.search-field {
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    flex-grow: 1;
+}
+
+.job-field {
+    border-right: 1px solid #ddd; 
+    flex-basis: 60%; 
+}
+
+.area-field {
+    flex-basis: 40%;
+}
+
+.search-field label {
+    font-weight: 500;
+    /* Màu chữ xám nhạt hơn, không còn đỏ Viettel */
+    color: #555; 
+    margin-right: 5px;
+    white-space: nowrap; 
+    font-size: 15px;
+}
+
+.search-field input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    padding: 5px 0;
+    width: 100%; 
+}
+
+.search-field input::placeholder {
+    color: #aaa;
+}
+
+/* 3. Search Button */
+.search-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 10px;
+    color: #888; /* Màu icon tìm kiếm xám nhạt hơn */
+    display: flex;
+    align-items: center;
+    margin-left: 10px; 
+    transition: color 0.3s ease;
+}
+
+.search-button:hover {
+    color: #555;
+}
+
+.search-button svg {
+    display: block;
+}

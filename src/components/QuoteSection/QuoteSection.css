@@ -1,0 +1,96 @@
+/* Thiết lập biến màu */
+
+/* 1. Quote Section Container */
+.quote-section {
+    width: 100%;
+    padding: 80px 0;
+    background-color: white; /* Nền trắng */
+}
+
+.quote-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center; /* Căn giữa dọc giữa ảnh và text */
+    justify-content: center;
+    gap: 80px; /* Khoảng cách giữa ảnh và nội dung */
+}
+
+/* 2. Image Wrapper và Hình lượn sóng đỏ */
+.quote-image-wrapper {
+    position: relative;
+    width: 350px; /* Kích thước tổng thể của vùng ảnh */
+    height: 350px;
+    /* Đảm bảo ảnh nằm gọn trong vùng */
+    overflow: hidden; 
+    border: 1 solid, brown;
+}
+
+.quote-image-wrapper img{
+    border-radius: 100px;
+    
+}
+
+.quote-man-image {
+    position: relative;
+    z-index: 2; /* Nằm trên hình đỏ */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Cắt ảnh theo hình tròn / lượn sóng (tùy chọn) */
+    /* clip-path: polygon(...) */
+}
+
+/* 3. Quote Content */
+.quote-content {
+    flex-grow: 1;
+    max-width: 600px;
+    text-align: left;
+}
+
+.quote-title {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--viettel-green); /* Màu chữ xanh lá đậm */
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+/* 4. Quote Text */
+.quote-text {
+    font-size: 1.2em;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin-bottom: 30px;
+    padding-left: 30px; /* Tạo khoảng trống cho dấu ngoặc kép */
+    position: relative;
+}
+
+.quote-icon {
+    position: absolute;
+    left: 0;
+    top: -10px;
+    font-size: 3em;
+    font-family: serif; /* Dùng font serif cho dấu ngoặc kép */
+    color: #e0e0e0; /* Màu xám nhạt */
+}
+
+/* 5. Author */
+.quote-author {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.author-name {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.author-title {
+    font-style: italic;
+}

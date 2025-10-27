@@ -1,0 +1,103 @@
+/* Khởi tạo lại một số thuộc tính cơ bản */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* 1. Header Container */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 100px; /* Padding ngang để tạo khoảng cách */
+    background-color: white;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); /* Bóng nhẹ phía dưới */
+    position: relative;
+    z-index: 1000; /* Giới hạn chiều rộng tối đa */
+    margin: 0 auto; /* Căn giữa Header */
+}
+
+/* 2. Logo */
+.logo {
+    display: flex;
+    align-items: center;
+    color: #e50000; /* Viettel Red */
+    font-size: 30px;
+    font-weight: 500; /* Độ đậm vừa phải */
+}
+
+/* Nếu bạn muốn thêm phần "TUYỂN DỤNG" đậm hơn, 
+   bạn nên dùng span hoặc b trong component React, 
+   hoặc chỉ đơn giản style cho text này. */
+
+.logo img {
+    /* Nếu bạn vẫn muốn sử dụng ảnh logo */
+    height: 40px; 
+    margin-right: 10px;
+}
+.title{
+    font-weight: bold;
+}
+/* 3. Navigation (Nav) */
+.nav ul {
+    list-style: none;
+    display: flex;
+    gap: 25px; /* Khoảng cách giữa các mục menu */
+    margin: 0;
+    padding: 0;
+}
+
+.nav a {
+    text-decoration: none;
+    color: #333; /* Màu chữ đen xám */
+    font-weight: 500;
+    font-size: 20px;
+    padding: 5px 0;
+    transition: color 0.3s ease;
+}
+
+.nav a:hover,
+.nav a:focus {
+    color: #e50000; /* Hover đổi màu sang đỏ Viettel */
+}
+
+/* 4. Actions (Buttons) */
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 8px 15px;
+    border: 1px solid transparent; /* Dùng transparent để duy trì kích thước */
+    border-radius: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 20px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+/* Nút "ỨNG VIÊN" */
+.btn.candidate {
+    background-color: #e50000; /* Viettel Red */
+    color: white;
+    border-color: #e50000;
+}
+
+.btn.candidate:hover {
+    background-color: #c90000; /* Đỏ đậm hơn khi hover */
+}
+
+/* Nút "NHÂN VIÊN" */
+.btn.employer {
+    background-color: white;
+    color: #e50000;
+    border-color: #e50000;
+}
+
+.btn.employer:hover {
+    background-color: #fcebeb; /* Nền đỏ nhạt khi hover */
+}
