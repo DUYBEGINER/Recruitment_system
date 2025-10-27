@@ -31,6 +31,18 @@ const loginRequest = async (email, password) => {
     } 
 }
 
+const employeeLogin = async (username, password) => {
+    console.log("employeeLogin called with:", { username, password });
+    try{
+        const res = await axiosClient.post(`/auth/employee-login`, { username, password });
+        console.log("res employee login:" , res.data)
+        return res.data;
+    } catch (err){
+        console.error("Error response", err.response);
+        throw err;
+    } 
+}
+
 const registerRequest = async (userData) => {
     try{
         const res = await axiosClient.post(`/auth/register`, userData);
@@ -51,12 +63,21 @@ const registerRequest = async (userData) => {
 // };
 
 
-// const logOutRequest = async (idToken) => {
-//   const res = await axiosClient.post(`/auth/logout`, {}, {
-//     headers: { Authorization: `Bearer ${idToken}` },
-//   });
-//   console.log("res logout:", res)
-//   return res.data;
-// }
+const logOutRequest = async (idToken) => {
+  const res = await axiosClient.post(`/auth/logout`, {}, {
+    headers: { Authorization: `Bearer ${idToken}` },
+  });
+  console.log("res logout:", res)
+  return res.data;
+}
 
-export { checkSession, loginRequest, registerRequest };
+const authAPI = {
+  checkSession,
+  loginRequest,
+  employeeLogin,
+  registerRequest,
+  logOutRequest
+};
+
+export default authAPI;
+export { checkSession, loginRequest, employeeLogin, registerRequest, logOutRequest };

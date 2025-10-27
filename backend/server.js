@@ -1,10 +1,18 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import "dotenv/config.js";
 
 import usersAPI from "./routes/userRoutes.js";
 import authAPI from "./routes/authRoutes.js";
+import uploadAPI from "./routes/uploadRoutes.js";
+import jobAPI from "./routes/jobRoutes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -20,9 +28,14 @@ app.use(express.json()); // Parse JSON body
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded body
 app.use(cookieParser()); // Parse cookies
 
+// Static files - Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'CV_Storage')));
+
 // Routes
 app.use("/auth", authAPI);
 app.use("/api/users", usersAPI);
+app.use("/api/upload", uploadAPI);
+app.use("/api/jobs", jobAPI);
 
 // Health check endpoint
 app.get("/", (req, res) => {

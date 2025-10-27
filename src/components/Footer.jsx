@@ -41,15 +41,6 @@ export default function Footer() {
               <a href="#" className="hover:text-red-600"><Instagram size={20} /></a>
             </div>
           </div>
-
-          {/* Logo bộ công thương */}
-          <div>
-            <img
-              src="https://www.tncstore.vn/static/version1719981613/frontend/TNC/default/vi_VN/images/bo-cong-thuong.png"
-              alt="Đã thông báo Bộ Công Thương"
-              className="h-10 mt-2"
-            />
-          </div>
         </div>
       </div>
 
