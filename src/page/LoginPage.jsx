@@ -41,7 +41,7 @@ function LoginPage() {
   return (
     <MainLayout>
       <div className="min-h-[calc(80vh)] flex items-center justify-center bg-white">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border-t-4 border-red-600">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 border-t-4 border-red-600">
           <h1 className="text-3xl font-bold text-center text-red-600 mb-6">
             Đăng nhập
           </h1>

@@ -51,12 +51,12 @@ const registerRequest = async (userData) => {
 // };
 
 
-// const logOutRequest = async (idToken) => {
-//   const res = await axiosClient.post(`/auth/logout`, {}, {
-//     headers: { Authorization: `Bearer ${idToken}` },
-//   });
-//   console.log("res logout:", res)
-//   return res.data;
-// }
+const logOutRequest = async (idToken) => {
+  const res = await axiosClient.post(`/auth/logout`, {}, {
+    headers: { Authorization: `Bearer ${idToken}` },
+  });
+  console.log("res logout:", res)
+  return res.data;
+}
 
-export { checkSession, loginRequest, registerRequest };
+export { checkSession, loginRequest, registerRequest, logOutRequest };

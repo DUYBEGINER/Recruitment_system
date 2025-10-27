@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, use } from "react";
 import { checkSession } from "../api/authAPI";
-import {AuthContext} from "./AuthContext";
+import { AuthContext } from "./AuthContext";
+import { logOutRequest } from "../api/authAPI";
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null); // null = chưa đăng nhập
@@ -10,34 +11,31 @@ function AuthProvider({ children }) {
 
   console.log("user", user);
 
-
   console.log("loading", loading);
 
   const checkUserSession = useCallback(async () => {
-    try{
+    try {
       const response = await checkSession();
       console.log("API Response:", response);
 
       // if (!isMountedRef.current) return;
-      
-      if(response?.success && response?.data){
+
+      if (response?.success && response?.data) {
         setUser(response.data);
         setAuthenticate(true);
         setError(null);
         console.log("User session valid:", response.data);
-      }else{
-        console.log("No valid user session"); 
+      } else {
+        console.log("No valid user session");
         setAuthenticate(false);
         setUser(null);
         setError(null);
       }
-
     } catch (error) {
       console.error("Error checking user session:", error);
- 
-        setAuthenticate(false);
-        setUser(null);
-        setError(error.message);
+      setAuthenticate(false);
+      setUser(null);
+      setError(error.message);
     } finally {
       console.log("Finalizing session check");
     }
@@ -47,12 +45,10 @@ function AuthProvider({ children }) {
     checkUserSession();
   }, [checkUserSession]);
 
-
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  
   const refreshSession = useCallback(() => {
     setLoading(true);
     setUser(null);
@@ -61,24 +57,35 @@ function AuthProvider({ children }) {
     checkUserSession();
   }, [checkUserSession]);
 
+  const logout = useCallback(async () => {
+    try {
+      setLoading(true);
+      await logOutRequest();
+    } catch (error) {
+      console.error("Error logging out:", error);
+    } 
+    setLoading(false);
+    setUser(null);
+    setAuthenticate(false);
+    setError(null);
+  }, []);
 
   const contextValue = {
     user,
     loading,
+    logout,
     authenticate,
     error,
     setUser,
     setAuthenticate,
     clearError,
-    refreshSession
+    refreshSession,
   };
-  
+
   console.log("AuthProvider context:", contextValue);
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 
