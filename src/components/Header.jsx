@@ -7,7 +7,7 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  
+  console.log("Header - Current user:", user);
   // Helper function để check active link
   const isActive = (path) => location.pathname === path;
 
@@ -74,7 +74,14 @@ export default function Header() {
           </button>
         </div>) : (
         <div className="flex items-center space-x-3">
-          <span className="text-gray-700 font-medium">Xin chào, {user.fullname}</span>
+          <span className="text-gray-700 font-medium">
+            Xin chào, {user?.full_name || user?.username || user?.email}
+            {user.role && (
+              <span className="ml-2 text-xs px-2 py-1 rounded-full bg-red-100 text-red-600 font-semibold">
+                {user.role === 'TPNS' ? 'Trưởng phòng NS' : user.role}
+              </span>
+            )}
+          </span>
           <button onClick={logout} className="border border-red-500 text-red-600 font-medium rounded-full px-4 py-1.5 hover:bg-red-50 transition">
             Đăng xuất
           </button>

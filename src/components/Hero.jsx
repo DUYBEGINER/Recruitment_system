@@ -15,7 +15,7 @@ export default function Hero({
   };
 
   return (
-    <section className="relative h-[56vh] md:h-[68vh] w-full overflow-hidden rounded-none md:rounded-2xl">
+    <section className="relative h-[56vh] md:h-[68vh] w-full overflow-hidden rounded-none ">
       {/* Background image */}
       <img
         src={background}

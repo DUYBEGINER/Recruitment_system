@@ -10,20 +10,87 @@ import JobsPost from "./page/admin/JobsPost";
 import UploadFile from "./page/admin/UploadFile";
 import Recruitment from "./page/Recruitment";
 
+// Import các route bảo vệ
+import AuthRoute from "./components/ProtectedRoute/AuthRoute";
+import PrivateRoute from "./components/ProtectedRoute/PrivateRoute";
+import HRRoute from "./components/ProtectedRoute/HRRoute";
+import PublicRoute from "./components/ProtectedRoute/PublicRoute";
+
 import '@ant-design/v5-patch-for-react-19';
 
 function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/recruitment" element={<Recruitment />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/employee-login" element={<EmployeeLoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/HR/createjob" element={<CreateJob />} />
-      <Route path="/HR/jobs" element={<JobsPost />} />
-      <Route path="/HR/upload" element={<UploadFile />} />
+      {/* Public routes - Nhưng CHẶN nhân viên (TPNS/HR) không cho vào */}
+      <Route 
+        path="/" 
+        element={
+          <PublicRoute>
+            <Home />
+          </PublicRoute>
+        } 
+      />
+      <Route 
+        path="/recruitment" 
+        element={
+          <PublicRoute>
+            <Recruitment />
+          </PublicRoute>
+        } 
+      />
+      
+      {/* Auth routes - Chỉ khi CHƯA đăng nhập mới truy cập được */}
+      <Route 
+        path="/login" 
+        element={
+          <AuthRoute>
+            <LoginPage />
+          </AuthRoute>
+        } 
+      />
+      <Route 
+        path="/employee-login" 
+        element={
+          <AuthRoute>
+            <EmployeeLoginPage />
+          </AuthRoute>
+        } 
+      />
+      <Route 
+        path="/register" 
+        element={
+          <AuthRoute>
+            <RegisterPage />
+          </AuthRoute>
+        } 
+      />
+      
+      {/* HR routes - Chỉ HR mới truy cập được */}
+      <Route 
+        path="/HR/createjob" 
+        element={
+          <HRRoute>
+            <CreateJob />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/jobs" 
+        element={
+          <HRRoute>
+            <JobsPost />
+          </HRRoute>
+        } 
+      />
+      <Route 
+        path="/HR/upload" 
+        element={
+          <HRRoute>
+            <UploadFile />
+          </HRRoute>
+        } 
+      />
     </Routes>
   );
 }

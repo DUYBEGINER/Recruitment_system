@@ -32,10 +32,8 @@ const loginRequest = async (email, password) => {
 }
 
 const employeeLogin = async (username, password) => {
-    console.log("employeeLogin called with:", { username, password });
     try{
         const res = await axiosClient.post(`/auth/employee-login`, { username, password });
-        console.log("res employee login:" , res.data)
         return res.data;
     } catch (err){
         console.error("Error response", err.response);
