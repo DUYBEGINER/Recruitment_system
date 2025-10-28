@@ -27,7 +27,17 @@ export default function CreateInterviewModal({ visible, onClose, applicationId, 
       const result = await interviewAPI.createInterview(interviewData);
       
       if (result.success) {
-        message.success("Tạo lịch phỏng vấn thành công!");
+        // Hiển thị thông báo về email
+        if (result.emailSent) {
+          message.success("Tạo lịch phỏng vấn và gửi email thông báo thành công!");
+          // Nếu có preview URL (test email), log ra console
+          if (result.emailPreview) {
+            console.log('Email preview:', result.emailPreview);
+          }
+        } else {
+          message.warning("Tạo lịch phỏng vấn thành công nhưng không thể gửi email thông báo");
+        }
+        
         form.resetFields();
         onSuccess && onSuccess(result.data);
         onClose();
@@ -115,12 +125,6 @@ export default function CreateInterviewModal({ visible, onClose, applicationId, 
               <div className="flex items-center gap-2">
                 <span className="inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
                 Tại văn phòng
-              </div>
-            </Select.Option>
-            <Select.Option value="phone">
-              <div className="flex items-center gap-2">
-                <span className="inline-block w-2 h-2 rounded-full bg-teal-500"></span>
-                Điện thoại
               </div>
             </Select.Option>
           </Select>

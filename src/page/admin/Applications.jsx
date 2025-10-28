@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Filter, Download, Eye, UserCheck, UserX, Clock } from "lucide-react";
 import { message, Modal, Select, Spin } from "antd";
+import { API_URL } from "../../data/API_URL";
 import AdminLayout from "../../layout/AdminLayout";
 import applicationAPI from "../../api/applicationAPI";
 import jobAPI from "../../api/jobAPI";
@@ -75,7 +76,8 @@ const ApplicationRow = ({ application, onStatusChange, basePath }) => {
           
           {application.cv_url && (
             <a
-              href={application.cv_url}
+              href={`${API_URL}${application.cv_url}`}
+              download
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm border-blue-200 text-blue-600 hover:bg-blue-50"

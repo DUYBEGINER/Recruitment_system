@@ -25,10 +25,10 @@ const { TextArea } = Input;
 /** Badge trạng thái */
 const StatusBadge = ({ status }) => {
   const map = {
-    scheduled: { text: "Đã lên lịch", cls: "bg-blue-100 text-blue-700" },
+    pending: { text: "Chờ xác nhận", cls: "bg-yellow-100 text-yellow-700" },
+    confirmed: { text: "Đã xác nhận", cls: "bg-blue-100 text-blue-700" },
     completed: { text: "Đã hoàn thành", cls: "bg-green-100 text-green-700" },
-    cancelled: { text: "Đã hủy", cls: "bg-red-100 text-red-700" },
-    rescheduled: { text: "Đã dời lịch", cls: "bg-orange-100 text-orange-700" },
+    canceled: { text: "Đã hủy", cls: "bg-red-100 text-red-700" },
   };
   const config = map[status] || { text: status, cls: "bg-gray-100 text-gray-700" };
   return (
@@ -215,13 +215,11 @@ export default function InterviewDetail() {
                 <div className="flex items-start gap-3">
                   {interview.method === 'online' && <Video size={18} className="text-purple-500 mt-1" />}
                   {interview.method === 'offline' && <MapPin size={18} className="text-indigo-500 mt-1" />}
-                  {interview.method === 'phone' && <Phone size={18} className="text-teal-500 mt-1" />}
                   <div>
                     <div className="text-sm text-slate-500">Phương thức</div>
                     <div className="text-slate-900 font-medium">
                       {interview.method === 'online' && 'Trực tuyến'}
                       {interview.method === 'offline' && 'Tại văn phòng'}
-                      {interview.method === 'phone' && 'Điện thoại'}
                     </div>
                   </div>
                 </div>
@@ -391,7 +389,6 @@ export default function InterviewDetail() {
             <Select placeholder="Chọn phương thức">
               <Select.Option value="online">Trực tuyến</Select.Option>
               <Select.Option value="offline">Tại văn phòng</Select.Option>
-              <Select.Option value="phone">Điện thoại</Select.Option>
             </Select>
           </Form.Item>
 
@@ -409,10 +406,10 @@ export default function InterviewDetail() {
             rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
           >
             <Select placeholder="Chọn trạng thái">
-              <Select.Option value="scheduled">Đã lên lịch</Select.Option>
+              <Select.Option value="pending">Chờ xác nhận</Select.Option>
+              <Select.Option value="confirmed">Đã xác nhận</Select.Option>
               <Select.Option value="completed">Đã hoàn thành</Select.Option>
-              <Select.Option value="cancelled">Đã hủy</Select.Option>
-              <Select.Option value="rescheduled">Đã dời lịch</Select.Option>
+              <Select.Option value="canceled">Đã hủy</Select.Option>
             </Select>
           </Form.Item>
 

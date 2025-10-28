@@ -121,3 +121,43 @@ export async function countCandidates() {
     throw error;
   }
 }
+
+// Lấy candidate theo email
+export async function getCandidateByEmail(email) {
+  try {
+    const pool = await connect();
+    const result = await pool
+      .request()
+      .input('email', sql.NVarChar, email)
+      .query(`
+        SELECT TOP 1 *
+        FROM Candidate
+        WHERE email = @email
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error in getCandidateByEmail:', error);
+    throw error;
+  }
+}
+
+// Tạo candidate mới
+export async function createCandidate(candidateData) {
+  try {
+    const pool = await connect();
+    const result = await pool
+      .request()
+      .input('full_name', sql.NVarChar, candidateData.full_name)
+      .input('email', sql.NVarChar, candidateData.email)
+      .input('phone', sql.NVarChar, candidateData.phone)
+      .query(`
+        INSERT INTO Candidate (full_name, email, phone, created_at)
+        OUTPUT INSERTED.*
+        VALUES (@full_name, @email, @phone, GETDATE())
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error in createCandidate:', error);
+    throw error;
+  }
+}

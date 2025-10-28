@@ -3,15 +3,21 @@ import { useParams, useNavigate } from "react-router-dom";
 import jobAPI from "../../api/jobAPI";
 import applicationAPI from "../../api/applicationAPI";
 import useAuth from "../../hook/useAuth";
+import { 
+  BriefcaseIcon, 
+  CurrencyDollarIcon,
+  UserGroupIcon,
+  AcademicCapIcon,
+  ClockIcon
+} from "@heroicons/react/24/outline";
+import ApplicationModal from "../ApplicationModal/ApplicationModal";
 import "./JobDetail.css";
 
 export default function JobDetail() {
   const { id } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showApplyForm, setShowApplyForm] = useState(false);
-  const [cvFile, setCvFile] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [message, setMessage] = useState(null);
   const navigate = useNavigate();
   const { user, authenticate } = useAuth();
@@ -20,7 +26,8 @@ export default function JobDetail() {
     const fetchJob = async () => {
       try {
         const res = await jobAPI.getJobById(id);
-        setJob(res.data.data);
+        console.log("Loaded job:", res.data);
+        setJob(res.data);
       } catch (err) {
         console.error("Lỗi load job:", err);
       } finally {
@@ -35,51 +42,27 @@ export default function JobDetail() {
 
   const handleApplyClick = () => {
     if (!authenticate || !user) {
-      // redirect to login page
       navigate('/login');
       return;
     }
-    setShowApplyForm(true);
+    setShowModal(true);
   };
 
-  const handleFileChange = (e) => {
-    setCvFile(e.target.files?.[0] || null);
-  };
-
-  const handleSubmitApplication = async (e) => {
-    e.preventDefault();
-    if (!user) {
-      setMessage({ type: 'error', text: 'Bạn cần đăng nhập để nộp hồ sơ.' });
-      return;
-    }
-    const candidateId = user.id || user.userId || user.user_id;
-    if (!candidateId) {
-      setMessage({ type: 'error', text: 'Không xác định được tài khoản ứng viên.' });
-      return;
-    }
-
-    setSubmitting(true);
-    setMessage(null);
+  const handleSubmitApplication = async (formData) => {
     try {
-      const form = new FormData();
-      form.append('jobId', id);
-  form.append('candidateId', candidateId);
-      if (cvFile) form.append('file', cvFile);
-
-      const res = await applicationAPI.submitApplication(form);
-      if (res?.data?.success) {
-        setMessage({ type: 'success', text: 'Nộp hồ sơ thành công!' });
-        setShowApplyForm(false);
-        setCvFile(null);
-      } else {
-        setMessage({ type: 'error', text: res?.data?.message || 'Không thể nộp hồ sơ' });
+      const response = await applicationAPI.submitApplication(formData);
+      
+      if (response.success) {
+        setMessage({ type: 'success', text: 'Nộp hồ sơ thành công! Chúng tôi sẽ liên hệ với bạn sớm.' });
+        setShowModal(false);
+        
+        // Tự động ẩn thông báo sau 5s
+        setTimeout(() => {
+          setMessage(null);
+        }, 5000);
       }
-    } catch (err) {
-      console.error('Apply error', err);
-      const text = err.response?.data?.message || err.message || 'Lỗi khi nộp hồ sơ';
-      setMessage({ type: 'error', text });
-    } finally {
-      setSubmitting(false);
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Có lỗi xảy ra khi nộp hồ sơ' });
     }
   };
 
@@ -109,37 +92,35 @@ export default function JobDetail() {
         <main className="job-body-left">
           <section className="section">
             <h4 className="section-title-red">MÔ TẢ CÔNG VIỆC</h4>
-            <div className="section-content">{job.description || "Không có mô tả"}</div>
+            <div className="section-content" style={{ whiteSpace: 'pre-line' }}>
+              {job.description || "Không có mô tả"}
+            </div>
           </section>
 
           <section className="section">
             <h4 className="section-title-red">YÊU CẦU</h4>
-            <div className="section-content">{job.requirements || "Không có"}</div>
+            <div className="section-content" style={{ whiteSpace: 'pre-line' }}>
+              {job.requirements || "Không có"}
+            </div>
           </section>
 
           <section className="section">
             <h4 className="section-title-red">KỸ NĂNG</h4>
-            <div className="section-content">{job.skills || "Không có"}</div>
+            <div className="section-content" style={{ whiteSpace: 'pre-line' }}>
+              {job.skills || "Không có"}
+            </div>
           </section>
 
           <section className="section">
-            <h4 className="section-title-red">ĐÃI NGỘ</h4>
-            <div className="benefits-row">{job.benefits || "Không có"}
+            <h4 className="section-title-red">QUYỀN LỢI</h4>
+            <div className="section-content" style={{ whiteSpace: 'pre-line' }}>
+              {job.benefits || "Không có"}
             </div>
           </section>
 
           <div className="sticky-actions">
             <button className="btn-apply primary" onClick={handleApplyClick}>ỨNG TUYỂN NGAY</button>
-            {showApplyForm && (
-              <form className="apply-form" onSubmit={handleSubmitApplication}>
-                <label className="file-label">Upload CV (PDF/DOC/DOCX)</label>
-                <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
-                <div className="apply-actions">
-                  <button type="submit" className="btn-apply primary" disabled={submitting}>{submitting ? 'Đang gửi...' : 'Gửi hồ sơ'}</button>
-                  <button type="button" className="btn-reset" onClick={() => { setShowApplyForm(false); setCvFile(null); }}>Hủy</button>
-                </div>
-              </form>
-            )}
+            
             {message && (
               <div className={`apply-message ${message.type}`}>{message.text}</div>
             )}
@@ -150,14 +131,51 @@ export default function JobDetail() {
           <div className="info-panel">
             <h4 className="info-title">THÔNG TIN CÔNG VIỆC</h4>
             <ul className="info-list">
-              <li><strong>Ngành nghề</strong>: {job.employmentType || "-"}</li>
-              <li><strong>Cấp bậc</strong>: {job.experienceLevel || "-"}</li>
-              <li><strong>Lương</strong>: {job.salaryMin || 0} - {job.salaryMax || 0}</li>
-              <li><strong>Số lượng người cần tuyển</strong>: {job.quantity || 1}</li>
+              <li>
+                <div className="info-item-label">
+                  <ClockIcon className="info-icon" />
+                  <strong>Hình thức</strong>
+                </div>
+                <span>{job.employmentType || "Không rõ"}</span>
+              </li>
+              <li>
+                <div className="info-item-label">
+                  <AcademicCapIcon className="info-icon" />
+                  <strong>Cấp bậc</strong>
+                </div>
+                <span>{job.experienceLevel || "Không yêu cầu"}</span>
+              </li>
+              <li>
+                <div className="info-item-label">
+                  <CurrencyDollarIcon className="info-icon" />
+                  <strong>Mức lương</strong>
+                </div>
+                <span>
+                  {job.salaryMin && job.salaryMax 
+                    ? `${Number(job.salaryMin).toLocaleString()} - ${Number(job.salaryMax).toLocaleString()} VNĐ`
+                    : "Thỏa thuận"}
+                </span>
+              </li>
+              <li>
+                <div className="info-item-label">
+                  <UserGroupIcon className="info-icon" />
+                  <strong>Số lượng</strong>
+                </div>
+                <span>{job.quantity || 1} người</span>
+              </li>
             </ul>
           </div>
         </aside>
       </div>
+
+      {/* Application Modal */}
+      <ApplicationModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        jobTitle={job?.title || ''}
+        jobId={id}
+        onSubmitSuccess={handleSubmitApplication}
+      />
     </div>
   );
 }

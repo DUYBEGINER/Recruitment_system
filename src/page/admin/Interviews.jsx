@@ -26,10 +26,10 @@ const { RangePicker } = DatePicker;
 /** Badge trạng thái lịch phỏng vấn */
 const StatusBadge = ({ status }) => {
   const map = {
-    scheduled: { text: "Đã lên lịch", cls: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
+    pending: { text: "Chờ xác nhận", cls: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: Clock },
+    confirmed: { text: "Đã xác nhận", cls: "bg-blue-100 text-blue-700 border-blue-200", icon: CheckCircle },
     completed: { text: "Đã hoàn thành", cls: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
-    cancelled: { text: "Đã hủy", cls: "bg-red-100 text-red-700 border-red-200", icon: XCircle },
-    rescheduled: { text: "Đã dời lịch", cls: "bg-orange-100 text-orange-700 border-orange-200", icon: RefreshCw },
+    canceled: { text: "Đã hủy", cls: "bg-red-100 text-red-700 border-red-200", icon: XCircle },
   };
   const config = map[status] || { text: status, cls: "bg-gray-100 text-gray-700 border-gray-200", icon: Clock };
   const Icon = config.icon;
@@ -46,7 +46,6 @@ const MethodBadge = ({ method }) => {
   const map = {
     online: { text: "Trực tuyến", cls: "bg-purple-100 text-purple-700 border-purple-200", icon: Video },
     offline: { text: "Tại văn phòng", cls: "bg-indigo-100 text-indigo-700 border-indigo-200", icon: MapPin },
-    phone: { text: "Điện thoại", cls: "bg-teal-100 text-teal-700 border-teal-200", icon: Phone },
   };
   const config = map[method] || { text: method, cls: "bg-gray-100 text-gray-700 border-gray-200", icon: Calendar };
   const Icon = config.icon;
@@ -147,13 +146,6 @@ export default function Interviews() {
               <Filter size={16} />
               Lọc
             </button>
-            <Link
-              to={`${basePath}/applications`}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              <Plus size={16} />
-              Tạo lịch phỏng vấn
-            </Link>
           </div>
         </div>
 
@@ -175,11 +167,23 @@ export default function Interviews() {
             <div className="rounded-lg border border-slate-200 bg-white p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600">Đã lên lịch</p>
-                  <p className="mt-2 text-3xl font-bold text-blue-600">{stats.scheduled_count || 0}</p>
+                  <p className="text-sm font-medium text-slate-600">Chờ xác nhận</p>
+                  <p className="mt-2 text-3xl font-bold text-yellow-600">{stats.pending_count || 0}</p>
+                </div>
+                <div className="rounded-full bg-yellow-100 p-3">
+                  <Clock className="h-6 w-6 text-yellow-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Đã xác nhận</p>
+                  <p className="mt-2 text-3xl font-bold text-blue-600">{stats.confirmed_count || 0}</p>
                 </div>
                 <div className="rounded-full bg-blue-100 p-3">
-                  <Clock className="h-6 w-6 text-blue-600" />
+                  <CheckCircle className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
             </div>
@@ -200,7 +204,7 @@ export default function Interviews() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Đã hủy</p>
-                  <p className="mt-2 text-3xl font-bold text-red-600">{stats.cancelled_count || 0}</p>
+                  <p className="mt-2 text-3xl font-bold text-red-600">{stats.canceled_count || 0}</p>
                 </div>
                 <div className="rounded-full bg-red-100 p-3">
                   <XCircle className="h-6 w-6 text-red-600" />
@@ -340,10 +344,10 @@ export default function Interviews() {
               allowClear
               className="w-full"
               options={[
-                { label: "Đã lên lịch", value: "scheduled" },
+                { label: "Chờ xác nhận", value: "pending" },
+                { label: "Đã xác nhận", value: "confirmed" },
                 { label: "Đã hoàn thành", value: "completed" },
-                { label: "Đã hủy", value: "cancelled" },
-                { label: "Đã dời lịch", value: "rescheduled" }
+                { label: "Đã hủy", value: "canceled" }
               ]}
             />
           </div>
@@ -360,8 +364,7 @@ export default function Interviews() {
               className="w-full"
               options={[
                 { label: "Trực tuyến", value: "online" },
-                { label: "Tại văn phòng", value: "offline" },
-                { label: "Điện thoại", value: "phone" }
+                { label: "Tại văn phòng", value: "offline" }
               ]}
             />
           </div>

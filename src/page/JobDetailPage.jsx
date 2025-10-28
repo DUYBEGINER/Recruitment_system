@@ -8,9 +8,8 @@ import JobDetail from '../components/JobDetail/JobDetail';
 
 function JobDetailPage() {
   return (
-    <MainLayout showHero={true} heroContent={<JobDetail/>}>
-       {/* Các thành phần khác của trang sẽ được đặt ở đây */}
-      
+    <MainLayout showHero={false}>
+       <JobDetail/>
     </MainLayout>
   );
 }

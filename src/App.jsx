@@ -15,6 +15,7 @@ import Candidates from "./page/admin/Candidates";
 import CandidateDetail from "./page/admin/CandidateDetail";
 import Interviews from "./page/admin/Interviews";
 import InterviewDetail from "./page/admin/InterviewDetail";
+import CreateInterview from "./page/admin/CreateInterview";
 import UploadFile from "./page/admin/UploadFile";
 import JobPage from "./page/JobPage";
 import JobDetailPage from './page/JobDetailPage';
@@ -153,6 +154,14 @@ function App() {
         } 
       />
       <Route 
+        path="/HR/interviews/create" 
+        element={
+          <HRRoute>
+            <CreateInterview />
+          </HRRoute>
+        } 
+      />
+      <Route 
         path="/HR/interviews/:interviewId" 
         element={
           <HRRoute>
@@ -231,6 +240,14 @@ function App() {
         element={
           <TPNSRoute>
             <Interviews />
+          </TPNSRoute>
+        } 
+      />
+      <Route 
+        path="/TPNS/interviews/create" 
+        element={
+          <TPNSRoute>
+            <CreateInterview />
           </TPNSRoute>
         } 
       />

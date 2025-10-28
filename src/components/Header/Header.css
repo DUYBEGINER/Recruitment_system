@@ -14,7 +14,10 @@ header {
     padding: 10px 100px; /* Padding ngang để tạo khoảng cách */
     background-color: white;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); /* Bóng nhẹ phía dưới */
-    position: relative;
+    position: fixed; /* Fixed position để luôn hiển thị */
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000; /* Giới hạn chiều rộng tối đa */
     margin: 0 auto; /* Căn giữa Header */
 }

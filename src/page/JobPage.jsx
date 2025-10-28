@@ -8,9 +8,8 @@ import JobListing from '../components/JobListing/JobListing';
 
 function JobPage() {
   return (
-    <MainLayout showHero={true} heroContent={<JobListing/>}>
-       {/* Các thành phần khác của trang sẽ được đặt ở đây */}
-      
+    <MainLayout showHero={false}>
+       <JobListing/>
     </MainLayout>
   );
 }

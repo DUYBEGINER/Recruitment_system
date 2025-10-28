@@ -5,9 +5,11 @@ import {
   getApplicationDetail,
   updateApplicationStatus,
   countApplications,
+  submitApplication,
 } from '../controller/applicationController.js';
 import { verifyToken } from "../middleware/verifyToken.js";
 import { requireEmployer } from '../middleware/roleCheck.js';
+import { uploadCV } from '../middleware/uploadcv.js';
 
 const router = express.Router();
 
@@ -15,6 +17,10 @@ const router = express.Router();
  * Routes cho Application (hồ sơ ứng tuyển)
  * Base path: /applications
  */
+
+// Nộp hồ sơ ứng tuyển (public - không cần đăng nhập)
+// POST /applications/submit
+router.post('/submit', uploadCV, submitApplication);
 
 // Lấy danh sách applications (có filter: job_id, status, employer_id)
 // GET /applications?job_id=1&status=pending

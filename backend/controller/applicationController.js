@@ -5,7 +5,10 @@ import {
   updateApplicationStatus as updateStatus,
   countApplicationsByJobId,
   countApplicationsByStatus as countByStatus,
+  createApplication,
+  checkExistingApplication,
 } from '../repositories/applicationRepository.js';
+import { getCandidateByEmail, createCandidate } from '../repositories/candidateRepository.js';
 
 /**
  * Controller để quản lý Applications (hồ sơ ứng tuyển)
@@ -173,6 +176,76 @@ export async function countApplications(req, res) {
     res.status(500).json({
       success: false,
       message: 'Lỗi khi đếm số lượng hồ sơ!',
+      error: error.message,
+    });
+  }
+}
+
+// Nộp hồ sơ ứng tuyển (cho candidate)
+export async function submitApplication(req, res) {
+  try {
+    const { jobId, fullName, email, phone, coverLetter } = req.body;
+    const cvFile = req.file;
+
+    // Validate
+    if (!jobId || !fullName || !email || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng điền đầy đủ thông tin!',
+      });
+    }
+
+    if (!cvFile) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng tải lên CV!',
+      });
+    }
+
+    // Kiểm tra xem candidate đã tồn tại chưa (theo email)
+    let candidate = await getCandidateByEmail(email);
+    
+    // Nếu chưa tồn tại, tạo mới candidate
+    if (!candidate) {
+      const candidateData = {
+        full_name: fullName,
+        email: email,
+        phone: phone,
+      };
+      candidate = await createCandidate(candidateData);
+    }
+
+    // Kiểm tra xem đã ứng tuyển vị trí này chưa
+    const existingApplication = await checkExistingApplication(candidate.id, parseInt(jobId));
+    if (existingApplication) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bạn đã ứng tuyển vị trí này rồi!',
+      });
+    }
+
+    // Tạo application mới
+    const cvUrl = `/uploads/${cvFile.filename}`;
+    const applicationData = {
+      job_id: parseInt(jobId),
+      candidate_id: candidate.id,
+      cv_url: cvUrl,
+      status: 'submitted',
+      cover_letter: coverLetter || null,
+    };
+
+    const application = await createApplication(applicationData);
+
+    res.status(201).json({
+      success: true,
+      data: application,
+      message: 'Nộp hồ sơ thành công! Chúng tôi sẽ liên hệ với bạn sớm.',
+    });
+  } catch (error) {
+    console.error('Submit application error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi nộp hồ sơ!',
       error: error.message,
     });
   }

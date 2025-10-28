@@ -11,11 +11,13 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Eye
+  Eye,
+  MapPin
 } from "lucide-react";
 import { message, Spin } from "antd";
 import AdminLayout from "../../layout/AdminLayout";
 import candidateAPI from "../../api/candidateAPI";
+import SendEmailModal from "../../components/admin/SendEmailModal";
 import useAuth from "../../hook/useAuth";
 
 /** Badge trạng thái application */
@@ -46,6 +48,7 @@ export default function CandidateDetail() {
   const [candidate, setCandidate] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
 
   const basePath = useMemo(() => {
     return user?.role === "TPNS" ? "/TPNS" : "/HR";
@@ -294,13 +297,13 @@ export default function CandidateDetail() {
               
               <div className="space-y-3">
                 {candidate.email && (
-                  <a
-                    href={`mailto:${candidate.email}`}
+                  <button
+                    onClick={() => setEmailModalVisible(true)}
                     className="flex items-center gap-2 w-full rounded-lg border border-blue-200 bg-blue-50 text-blue-700 px-4 py-2.5 hover:bg-blue-100 font-medium"
                   >
                     <Mail size={16} />
                     Gửi email
-                  </a>
+                  </button>
                 )}
                 
                 {candidate.phone && (
@@ -317,6 +320,14 @@ export default function CandidateDetail() {
           </div>
         </div>
       </div>
+
+      {/* Send Email Modal */}
+      <SendEmailModal
+        visible={emailModalVisible}
+        onClose={() => setEmailModalVisible(false)}
+        candidateEmail={candidate?.email}
+        candidateName={candidate?.full_name}
+      />
     </AdminLayout>
   );
 }

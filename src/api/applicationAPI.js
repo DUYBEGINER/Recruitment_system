@@ -75,6 +75,21 @@ const applicationAPI = {
       };
     }
   },
+
+  // Nộp hồ sơ ứng tuyển (cho candidate)
+  submitApplication: async (formData) => {
+    try {
+      const response = await axiosClient.post('/applications/submit', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Submit application error:', error);
+      throw new Error(error.response?.data?.message || 'Lỗi khi nộp hồ sơ ứng tuyển!');
+    }
+  },
 };
 
 export default applicationAPI;

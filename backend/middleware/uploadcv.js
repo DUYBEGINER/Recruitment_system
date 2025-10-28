@@ -50,4 +50,7 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+// Export middleware để upload 1 file CV
+export const uploadCV = upload.single('cv');
+
 export default upload;

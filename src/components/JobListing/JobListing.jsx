@@ -70,16 +70,20 @@ export default function JobListing() {
         <div className="job-cards-grid">
           {jobs.map((job) => (
             <div key={job.id} className="job-card">
-              <h3 className="job-title">{job.title}</h3>
+              <div className="job-card-content">
+                <h3 className="job-title">{job.title}</h3>
 
-              <p className="job-deadline">
-                Ngày hết hạn: {job.deadline?.split("T")[0] || "Không rõ"}
-              </p>
+                <p className="job-deadline">
+                  Ngày hết hạn: {job.deadline?.split("T")[0] || "Không rõ"}
+                </p>
 
-              <p className="job-company">{job.companyName}</p>
-              <p className="job-location">{job.location}</p>
+                <p className="job-company">{job.companyName}</p>
+                <p className="job-location">{job.location}</p>
+              </div>
 
-              <button className="btn-more" onClick={() => navigate(`/jobs/${job.id}`)}>XEM THÊM</button>
+              <div className="job-card-footer">
+                <button className="btn-more" onClick={() => navigate(`/jobs/${job.id}`)}>XEM THÊM</button>
+              </div>
             </div>
           ))}
         </div>

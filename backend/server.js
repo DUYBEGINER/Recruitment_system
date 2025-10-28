@@ -13,6 +13,7 @@ import jobAPI from "./routes/jobRoutes.js";
 import applicationAPI from "./routes/applicationRoutes.js";
 import candidateAPI from "./routes/candidateRoutes.js";
 import interviewAPI from "./routes/interviewRoutes.js";
+import emailAPI from "./routes/emailRoutes.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,6 +44,7 @@ app.use("/jobs", jobAPI); // Đổi từ /api/jobs → /jobs
 app.use("/applications", applicationAPI); // Routes cho quản lý hồ sơ ứng tuyển
 app.use("/candidates", candidateAPI); // Routes cho quản lý ứng viên
 app.use("/interviews", interviewAPI); // Routes cho quản lý lịch phỏng vấn
+app.use("/emails", emailAPI); // Routes cho gửi email
 
 
 // Health check endpoint

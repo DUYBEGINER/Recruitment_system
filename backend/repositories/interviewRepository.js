@@ -16,7 +16,7 @@ export async function createInterview(interviewData) {
       .input('method', sql.NVarChar, interviewData.method)
       .input('location', sql.NVarChar, interviewData.location || null)
       .input('notes', sql.NVarChar, interviewData.notes || null)
-      .input('status', sql.NVarChar, interviewData.status || 'scheduled')
+      .input('status', sql.NVarChar, interviewData.status || 'pending')
       .query(`
         INSERT INTO InterviewSchedule 
           (application_id, interviewer_id, schedule_time, method, location, notes, status, created_at, updated_at)
@@ -290,10 +290,10 @@ export async function getInterviewStats(filters = {}) {
     const result = await request.query(`
       SELECT 
         COUNT(*) as total,
-        SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) as scheduled_count,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+        SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_count,
         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_count,
-        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_count,
-        SUM(CASE WHEN status = 'rescheduled' THEN 1 ELSE 0 END) as rescheduled_count
+        SUM(CASE WHEN status = 'canceled' THEN 1 ELSE 0 END) as canceled_count
       FROM InterviewSchedule
       ${whereClause}
     `);

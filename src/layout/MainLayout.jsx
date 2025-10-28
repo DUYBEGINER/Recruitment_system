@@ -10,7 +10,7 @@ const MainLayout = ({ children, showHero = false, heroContent = null}) => {
     <div className="min-h-screen flex flex-col">
       <Header/>
        {showHero && heroContent}
-      <main className="flex-1 max-w-7xl mx-auto mt-5 w-full">{children}</main>
+      <main className="flex-1 max-w-7xl mx-auto w-full" style={{ paddingTop: showHero ? '0' : '80px' }}>{children}</main>
       <Footer />
     </div>
   );

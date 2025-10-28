@@ -181,3 +181,46 @@ export async function countApplicationsByStatus(jobId, status) {
     throw error;
   }
 }
+
+// Tạo application mới
+export async function createApplication(applicationData) {
+  try {
+    const pool = await connect();
+    const result = await pool
+      .request()
+      .input('job_id', sql.Int, applicationData.job_id)
+      .input('candidate_id', sql.Int, applicationData.candidate_id)
+      .input('cv_url', sql.NVarChar, applicationData.cv_url)
+      .input('status', sql.NVarChar, applicationData.status)
+      .input('cover_letter', sql.NVarChar, applicationData.cover_letter)
+      .query(`
+        INSERT INTO Application (job_id, candidate_id, cv_url, status, submitted_at)
+        OUTPUT INSERTED.*
+        VALUES (@job_id, @candidate_id, @cv_url, @status, GETDATE())
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error in createApplication:', error);
+    throw error;
+  }
+}
+
+// Kiểm tra xem candidate đã ứng tuyển job này chưa
+export async function checkExistingApplication(candidateId, jobId) {
+  try {
+    const pool = await connect();
+    const result = await pool
+      .request()
+      .input('candidate_id', sql.Int, candidateId)
+      .input('job_id', sql.Int, jobId)
+      .query(`
+        SELECT TOP 1 id
+        FROM Application
+        WHERE candidate_id = @candidate_id AND job_id = @job_id
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error in checkExistingApplication:', error);
+    throw error;
+  }
+}

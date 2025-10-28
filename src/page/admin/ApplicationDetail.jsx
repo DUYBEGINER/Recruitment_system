@@ -17,9 +17,11 @@ import {
   UserCheck
 } from "lucide-react";
 import { message, Modal, Select, Spin, Card, Tag, Button } from "antd";
+import { API_URL } from "../../data/API_URL";
 import AdminLayout from "../../layout/AdminLayout";
 import applicationAPI from "../../api/applicationAPI";
 import CreateInterviewModal from "../../components/admin/CreateInterviewModal";
+import SendEmailModal from "../../components/admin/SendEmailModal";
 import useAuth from "../../hook/useAuth";
 
 /** Badge trạng thái */
@@ -51,6 +53,7 @@ export default function ApplicationDetail() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [interviewModalVisible, setInterviewModalVisible] = useState(false);
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
 
   const basePath = user?.role === "TPNS" ? "/TPNS" : "/HR";
 
@@ -285,7 +288,8 @@ export default function ApplicationDetail() {
                     </div>
                   </div>
                   <a
-                    href={application.cv_url}
+                    href={`${API_URL}${application.cv_url}`}
+                    download
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-lg border border-blue-600 bg-blue-600 text-white px-4 py-2 hover:bg-blue-700"
@@ -365,13 +369,13 @@ export default function ApplicationDetail() {
               
               <div className="space-y-3">
                 {application.candidate_email && (
-                  <a
-                    href={`mailto:${application.candidate_email}`}
+                  <button
+                    onClick={() => setEmailModalVisible(true)}
                     className="flex items-center gap-2 w-full rounded-lg border border-blue-200 bg-blue-50 text-blue-700 px-4 py-2.5 hover:bg-blue-100 font-medium"
                   >
                     <Mail size={16} />
                     Gửi email
-                  </a>
+                  </button>
                 )}
                 
                 {application.candidate_phone && (
@@ -406,6 +410,14 @@ export default function ApplicationDetail() {
         onSuccess={() => {
           message.success("Lịch phỏng vấn đã được tạo thành công!");
         }}
+      />
+
+      {/* Send Email Modal */}
+      <SendEmailModal
+        visible={emailModalVisible}
+        onClose={() => setEmailModalVisible(false)}
+        candidateEmail={application?.candidate_email}
+        candidateName={application?.candidate_name}
       />
     </AdminLayout>
   );
