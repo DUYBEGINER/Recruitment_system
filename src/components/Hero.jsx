@@ -3,7 +3,7 @@ import { Briefcase, MapPin, Search } from "lucide-react";
 
 export default function Hero({
   background =
-    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1920&auto=format&fit=crop",
+    "https://upload.wikimedia.org/wikipedia/commons/3/3a/M%C3%BCnster%2C_LVM%2C_B%C3%BCrogeb%C3%A4ude_--_2013_--_5149-51.jpg",
   onSearch,
 }) {
   const [job, setJob] = useState("");
@@ -15,7 +15,7 @@ export default function Hero({
   };
 
   return (
-    <section className="relative h-[56vh] md:h-[68vh] w-full overflow-hidden rounded-none md:rounded-2xl">
+    <section className="relative h-[56vh] md:h-[68vh] w-full overflow-hidden rounded-none ">
       {/* Background image */}
       <img
         src={background}

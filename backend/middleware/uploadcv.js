@@ -50,4 +50,5 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+export const uploadCV = upload;
 export default upload;

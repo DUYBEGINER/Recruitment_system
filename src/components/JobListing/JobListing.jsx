@@ -11,24 +11,39 @@ export default function JobListing() {
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-  // Filter states (basic set; expand as needed)
+  // Filter states
   const [searchText, setSearchText] = useState("");
   const [selectedEmployers, setSelectedEmployers] = useState([]);
-  const [selectedAreas, setSelectedAreas] = useState([]);
-  const [selectedIndustries, setSelectedIndustries] = useState([]);
+  const [selectedLocations, setSelectedLocations] = useState([]);
+  const [selectedJobTypes, setSelectedJobTypes] = useState([]);
   const [selectedLevels, setSelectedLevels] = useState([]);
-  const [selectedWorkTimes, setSelectedWorkTimes] = useState([]);
-  const [filtersAppliedAt, setFiltersAppliedAt] = useState(0); // bump to re-run
+  const [filtersAppliedAt, setFiltersAppliedAt] = useState(0);
+
+  // Filter options - có thể lấy từ API hoặc define cố định
+  const locationOptions = [
+    'Hà Nội', 'Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 
+    'Cần Thơ', 'Bình Dương', 'Đồng Nai', 'Khác'
+  ];
+
+  const jobTypeOptions = [
+    'Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'
+  ];
+
+  const levelOptions = [
+    'Intern', 'Fresher', 'Junior', 'Middle', 'Senior', 'Leader', 'Manager'
+  ];
 
   const buildParams = () => {
     const params = {
       page,
       limit,
-      status: "approve",
     };
 
     if (searchText && searchText.trim()) params.search = searchText.trim();
-    if (selectedEmployers && selectedEmployers.length) params.employerIds = selectedEmployers.join(',');
+    if (selectedEmployers.length) params.employerIds = selectedEmployers.join(',');
+    if (selectedLocations.length) params.locations = selectedLocations.join(',');
+    if (selectedJobTypes.length) params.jobTypes = selectedJobTypes.join(',');
+    if (selectedLevels.length) params.levels = selectedLevels.join(',');
 
     return params;
   };
@@ -36,21 +51,31 @@ export default function JobListing() {
   const loadJobs = async () => {
     try {
       const params = buildParams();
+      console.log('🔍 Request params:', params);
+      
       const response = await jobAPI.getJobs(params);
+      console.log('📦 Full response:', response);
+      console.log('✅ Success:', response?.success);
+      console.log('📋 Data:', response?.data);
+      console.log('📄 Pagination:', response?.pagination);
 
-      // Backend may respond with different shapes depending on implementation.
-      // Support a few common variants to be robust.
-      const payload = response?.data || {};
-      const data = payload.data || payload.rows || payload.recordset || payload || [];
-
-      // If payload includes metadata use it; otherwise try to compute.
-      const totalCount = payload.totalCount || payload.total_count || payload.total || (Array.isArray(data) ? data.length : 0);
-      const pages = payload.totalPages || Math.max(1, Math.ceil(totalCount / limit));
-
-      setJobs(Array.isArray(data) ? data : []);
-      setTotalPages(pages);
+      if (response?.success) {
+        // response.data là array của jobs
+        const jobsData = Array.isArray(response.data) ? response.data : [];
+        console.log('🎯 Jobs array:', jobsData);
+        console.log('📊 Jobs count:', jobsData.length);
+        setJobs(jobsData);
+        
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages || 1);
+        }
+      } else {
+        console.warn('⚠️ Response not successful or no data');
+        setJobs([]);
+        setTotalPages(1);
+      }
     } catch (error) {
-      console.error("⚠️ Load jobs failed:", error);
+      console.error("❌ Load jobs failed:", error);
       setJobs([]);
       setTotalPages(1);
     } finally {
@@ -120,41 +145,23 @@ export default function JobListing() {
         <h3 className="filter-title">LỌC KẾT QUẢ</h3>
 
         <div className="filter-panel">
-          {/* Đơn vị tuyển dụng */}
+          {/* Loại hình công việc (job_type) */}
           <div className="filter-section">
             <div className="filter-header">
-              <h4 className="filter-title-heading">Đơn vị tuyển dụng</h4>
-              <span className="tat-ca">Tất cả</span>
+              <h4 className="filter-title-heading">Loại hình công việc</h4>
+              <span className="tat-ca" onClick={() => setSelectedJobTypes([])} style={{cursor: 'pointer'}}>Tất cả</span>
             </div>
-
-            <div className="filter-dropdown-mock">
-              <input
-                aria-label="search-employer"
-                placeholder="Tìm nhà tuyển dụng"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
-            </div>
-
             <div className="filter-list-scroll-mock">
-              {/* Example employers - replace with dynamic list when available */}
-              {[
-                { id: 1, name: 'Tổng công ty Giải pháp doanh nghiệp Viettel' },
-                { id: 2, name: 'Tổng công ty Công nghiệp Công nghệ cao Viettel' },
-                { id: 3, name: 'Viện Hàng không vũ trụ Viettel' },
-                { id: 4, name: 'Trung tâm Dịch vụ dữ liệu/Trạm' },
-              ].map((employer) => (
-                <label key={employer.id} className="checkbox-container">
-                  {employer.name}
+              {jobTypeOptions.map((type) => (
+                <label key={type} className="checkbox-container">
+                  {type}
                   <input
                     type="checkbox"
-                    checked={selectedEmployers.includes(String(employer.id))}
+                    checked={selectedJobTypes.includes(type)}
                     onChange={(e) => {
-                      const idStr = String(employer.id);
-                      setSelectedEmployers((prev) => {
-                        if (e.target.checked) return [...prev, idStr];
-                        return prev.filter((x) => x !== idStr);
-                      });
+                      setSelectedJobTypes(prev => 
+                        e.target.checked ? [...prev, type] : prev.filter(x => x !== type)
+                      );
                     }}
                   />
                   <span className="checkmark"></span>
@@ -165,38 +172,55 @@ export default function JobListing() {
 
           <hr className="divider" />
 
-          {/* Other quick filter headers (static placeholders) */}
-          <div className="filter-section">
-            <div className="filter-header">
-              <h4 className="filter-title-heading">Ngành nghề</h4>
-              <span className="tat-ca">Tất cả</span>
-            </div>
-          </div>
-
-          <hr className="divider" />
-
+          {/* Khu vực (location) */}
           <div className="filter-section">
             <div className="filter-header">
               <h4 className="filter-title-heading">Tìm theo khu vực</h4>
-              <span className="tat-ca">Tất cả</span>
+              <span className="tat-ca" onClick={() => setSelectedLocations([])} style={{cursor: 'pointer'}}>Tất cả</span>
+            </div>
+            <div className="filter-list-scroll-mock">
+              {locationOptions.map((location) => (
+                <label key={location} className="checkbox-container">
+                  {location}
+                  <input
+                    type="checkbox"
+                    checked={selectedLocations.includes(location)}
+                    onChange={(e) => {
+                      setSelectedLocations(prev => 
+                        e.target.checked ? [...prev, location] : prev.filter(x => x !== location)
+                      );
+                    }}
+                  />
+                  <span className="checkmark"></span>
+                </label>
+              ))}
             </div>
           </div>
 
           <hr className="divider" />
 
+          {/* Cấp bậc (level) */}
           <div className="filter-section">
             <div className="filter-header">
               <h4 className="filter-title-heading">Cấp bậc</h4>
-              <span className="tat-ca">Tất cả</span>
+              <span className="tat-ca" onClick={() => setSelectedLevels([])} style={{cursor: 'pointer'}}>Tất cả</span>
             </div>
-          </div>
-
-          <hr className="divider" />
-
-          <div className="filter-section">
-            <div className="filter-header">
-              <h4 className="filter-title-heading">Thời gian làm việc</h4>
-              <span className="tat-ca">Tất cả</span>
+            <div className="filter-list-scroll-mock">
+              {levelOptions.map((level) => (
+                <label key={level} className="checkbox-container">
+                  {level}
+                  <input
+                    type="checkbox"
+                    checked={selectedLevels.includes(level)}
+                    onChange={(e) => {
+                      setSelectedLevels(prev => 
+                        e.target.checked ? [...prev, level] : prev.filter(x => x !== level)
+                      );
+                    }}
+                  />
+                  <span className="checkmark"></span>
+                </label>
+              ))}
             </div>
           </div>
 
@@ -216,10 +240,9 @@ export default function JobListing() {
               onClick={() => {
                 setSearchText("");
                 setSelectedEmployers([]);
-                setSelectedAreas([]);
-                setSelectedIndustries([]);
+                setSelectedLocations([]);
+                setSelectedJobTypes([]);
                 setSelectedLevels([]);
-                setSelectedWorkTimes([]);
                 setPage(1);
                 setFiltersAppliedAt((s) => s + 1);
               }}

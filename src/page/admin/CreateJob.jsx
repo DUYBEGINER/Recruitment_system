@@ -16,6 +16,7 @@ import {
 import { Save, ArrowLeft } from 'lucide-react';
 import AdminLayout from '../../layout/AdminLayout';
 import jobAPI from '../../api/jobAPI';
+import useAuth from '../../hook/useAuth';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -23,39 +24,43 @@ const { Option } = Select;
 function CreateJob() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Xác định base path theo role
+  const basePath = user?.role === 'TPNS' ? '/TPNS' : '/HR';
 
   // Xử lý submit form
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
       
-      // Format dữ liệu
+      // Format dữ liệu theo schema database
       const jobData = {
         title: values.title,
         description: values.description,
         requirements: values.requirements,
         benefits: values.benefits,
         location: values.location,
-        employmentType: values.employmentType,
-        experienceLevel: values.experienceLevel,
-        salaryMin: values.salaryMin || null,
-        salaryMax: values.salaryMax || null,
-        numberOfPositions: values.numberOfPositions || 1,
+        job_type: values.job_type,
+        level: values.level,
+        salary_min: values.salary_min || null,
+        salary_max: values.salary_max || null,
+        quantity: values.quantity || 1,
         deadline: values.deadline ? values.deadline.format('YYYY-MM-DD') : null,
-        contactEmail: values.contactEmail,
-        contactPhone: values.contactPhone,
-        status: 'PENDING', // Trạng thái mặc định là chờ duyệt
+        contact_email: values.contact_email,
+        contact_phone: values.contact_phone,
+        status: 'draft', // Trạng thái mặc định là draft
       };
 
       const response = await jobAPI.createJob(jobData);
       
       if (response.success) {
-        message.success('Tạo tin tuyển dụng thành công! Đang chờ phê duyệt.');
+        message.success('Tạo tin tuyển dụng thành công! Tin đang ở trạng thái nháp.');
         form.resetFields();
         // Chuyển về trang danh sách jobs
         setTimeout(() => {
-          navigate('/HR/jobs');
+          navigate(`${basePath}/jobs`);
         }, 1000);
       } else {
         message.error(response.message || 'Tạo tin tuyển dụng thất bại!');
@@ -70,7 +75,7 @@ function CreateJob() {
 
   // Xử lý quay lại
   const handleBack = () => {
-    navigate('/HR/jobs');
+    navigate(`${basePath}/jobs`);
   };
 
   return (
@@ -86,7 +91,7 @@ function CreateJob() {
         
         <h2 className="text-2xl font-bold text-slate-900">Tạo tin tuyển dụng mới</h2>
         <p className="text-slate-600 mt-1">
-          Tin tuyển dụng sẽ ở trạng thái <span className="font-semibold text-amber-600">Chờ duyệt</span> sau khi tạo
+          Tin tuyển dụng sẽ ở trạng thái <span className="font-semibold text-gray-600">Nháp</span> sau khi tạo. Bạn có thể gửi duyệt sau.
         </p>
       </div>
 
@@ -141,7 +146,7 @@ function CreateJob() {
               <Col xs={24} md={12}>
                 <Form.Item
                   label="Hình thức làm việc"
-                  name="employmentType"
+                  name="job_type"
                   rules={[{ required: true, message: 'Vui lòng chọn hình thức!' }]}
                 >
                   <Select placeholder="Chọn hình thức" size="large">
@@ -157,7 +162,7 @@ function CreateJob() {
 
             <Form.Item
               label="Cấp bậc"
-              name="experienceLevel"
+              name="level"
               rules={[{ required: true, message: 'Vui lòng chọn cấp bậc!' }]}
             >
               <Select placeholder="Chọn cấp bậc" size="large">
@@ -234,7 +239,7 @@ function CreateJob() {
               <Col xs={24} md={12}>
                 <Form.Item
                   label="Mức lương tối thiểu (VNĐ)"
-                  name="salaryMin"
+                  name="salary_min"
                 >
                   <InputNumber
                     style={{ width: '100%' }}
@@ -251,7 +256,7 @@ function CreateJob() {
               <Col xs={24} md={12}>
                 <Form.Item
                   label="Mức lương tối đa (VNĐ)"
-                  name="salaryMax"
+                  name="salary_max"
                 >
                   <InputNumber
                     style={{ width: '100%' }}
@@ -310,7 +315,7 @@ function CreateJob() {
               <Col xs={24} md={12}>
                 <Form.Item
                   label="Email liên hệ"
-                  name="contactEmail"
+                  name="contact_email"
                   rules={[
                     { required: true, message: 'Vui lòng nhập email!' },
                     { type: 'email', message: 'Email không hợp lệ!' },
@@ -326,7 +331,7 @@ function CreateJob() {
               <Col xs={24} md={12}>
                 <Form.Item
                   label="Số điện thoại liên hệ"
-                  name="contactPhone"
+                  name="contact_phone"
                   rules={[
                     { required: true, message: 'Vui lòng nhập số điện thoại!' },
                     { pattern: /^[0-9]{10}$/, message: 'Số điện thoại phải có 10 chữ số!' },

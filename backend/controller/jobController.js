@@ -2,27 +2,29 @@ import {
   createJob,
   getAllJobs,
   getJobById,
+  getJobByEmployerId,
+  getAllJobsFiltered,
   updateJob,
   updateJobStatus,
   deleteJob
 } from '../repositories/jobRepository.js';
 
 /**
- * Tạo tin tuyển dụng mới
+ * Tạo tin tuyển dụng mới (Draft)
  */
 export const createJobPost = async (req, res) => {
   try {
     const jobData = {
       ...req.body,
-      createdBy: req.user?.id || 1, // TODO: Lấy từ token
-      status: 'PENDING' // Mặc định là chờ duyệt
+      employer_id: req.user?.id, // Lấy từ token đã verify
+      status: 'draft' // Mặc định là draft
     };
 
     const job = await createJob(jobData);
 
     return res.status(201).json({
       success: true,
-      message: 'Tạo tin tuyển dụng thành công! Đang chờ phê duyệt.',
+      message: 'Tạo tin tuyển dụng thành công! Tin đang ở trạng thái nháp.',
       data: job
     });
 
@@ -42,16 +44,66 @@ export const createJobPost = async (req, res) => {
 // DDuy start
 export const getJobPosts = async (req, res) => {
   try {
-    const jobs = await getAllJobs();
+    // Extract query parameters
+    const params = {
+      search: req.query.search || req.query.q,
+      employerIds: req.query.employerIds,
+      locations: req.query.locations,
+      jobTypes: req.query.jobTypes,
+      levels: req.query.levels,
+      page: req.query.page,
+      limit: req.query.limit
+    };
+
+    console.log('🔍 Controller received params:', params);
+
+    // Call repository with params
+    const result = await getAllJobs(params);
+
+    console.log('✅ Repository returned:', {
+      dataLength: result.data.length,
+      pagination: result.pagination
+    });
+
     return res.status(200).json({
       success: true,
-      data: jobs
+      data: result.data,
+      pagination: result.pagination
     });
   } catch (error) {
     console.error('❌ Controller getAll error:', error);
     return res.status(500).json({
       success: false,
       message: 'Lỗi khi lấy danh sách bài đăng'
+    });
+  }
+};
+
+/**
+ * Lấy danh sách tin tuyển dụng với filter
+ */
+export const getJobPostsFiltered = async (req, res) => {
+  try {
+    const filters = {
+      status: req.query.status,
+      search: req.query.q,
+      employer_id: req.query.employer_id, // Thêm filter theo employer_id
+      createdBy: req.query.createdBy
+    };
+
+    const jobs = await getAllJobsFiltered(filters);
+
+    return res.status(200).json({
+      success: true,
+      data: jobs
+    });
+
+  } catch (error) {
+    console.error('Get jobs error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy danh sách tin tuyển dụng!',
+      error: error.message
     });
   }
 };
@@ -71,6 +123,14 @@ export const getJobPostById = async (req, res) => {
       });
     }
 
+    // Get employer info if available
+    const employerInfo = await getJobByEmployerId(id);
+    if (employerInfo) {
+      job.companyName = employerInfo.employer_name;
+      job.employerRole = employerInfo.employer_role;
+      job.employerPhone = employerInfo.employer_phone;
+    }
+
     return res.status(200).json({
       success: true,
       data: job
@@ -88,14 +148,47 @@ export const getJobPostById = async (req, res) => {
 // DDuy end
 
 /**
+ * Lấy thông tin tin tuyển dụng theo ID
+ */
+export const getJobPostByIdEmployer = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('GET JOB POST BY ID EMPLOYER:', id);
+    const job = await getJobByEmployerId(id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy tin tuyển dụng!'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: job
+    });
+
+  } catch (error) {
+    console.error('Get job by id error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy thông tin tin tuyển dụng!',
+      error: error.message
+    });
+  }
+};
+
+
+/**
  * Cập nhật tin tuyển dụng
  */
 export const updateJobPost = async (req, res) => {
   try {
     const { id } = req.params;
-    
+    console.log('UPDATE JOB POST ID:', id);
+    console.log('Request body:', req.user.role);
     // Kiểm tra tin tuyển dụng có tồn tại không
-    const existingJob = await getJobById(id);
+    const existingJob = await getJobByEmployerId(id);
     if (!existingJob) {
       return res.status(404).json({
         success: false,
@@ -103,13 +196,25 @@ export const updateJobPost = async (req, res) => {
       });
     }
 
-    // Chỉ cho phép cập nhật nếu status là DRAFT hoặc REJECTED
-    if (!['DRAFT', 'REJECTED', 'PUBLISHED'].includes(existingJob.status)) {
-      return res.status(400).json({
+    // Kiểm tra quyền sở hữu (chỉ HR tạo tin mới được sửa)
+    if (req.user.role === 'HR' && existingJob.employer_id !== req.user.id) {
+      console.log('Unauthorized update attempt by user:', req.user.id);
+      return res.status(403).json({
         success: false,
-        message: 'Không thể cập nhật tin tuyển dụng ở trạng thái hiện tại!'
+        message: 'Bạn không có quyền sửa tin này!'
       });
     }
+
+    // Chỉ cho phép cập nhật nếu status KHÔNG phải pending
+    if (existingJob.status === 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Không thể sửa tin đang chờ duyệt! Vui lòng chờ TPNS xử lý.'
+      });
+    }
+
+    // Cho phép sửa tin đã đóng → sẽ chuyển về draft
+    // Frontend sẽ gửi status: 'draft' trong req.body khi muốn mở lại tin
 
     const updatedJob = await updateJob(id, req.body);
 
@@ -130,13 +235,13 @@ export const updateJobPost = async (req, res) => {
 };
 
 /**
- * Gửi tin tuyển dụng để phê duyệt
+ * Gửi tin tuyển dụng để phê duyệt (HR)
  */
 export const submitForApproval = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const job = await getJobById(id);
+    const job = await getJobByEmployerId(id);
     if (!job) {
       return res.status(404).json({
         success: false,
@@ -144,19 +249,27 @@ export const submitForApproval = async (req, res) => {
       });
     }
 
-    // Chỉ cho phép gửi duyệt nếu status là DRAFT hoặc REJECTED
-    if (!['DRAFT', 'REJECTED'].includes(job.status)) {
-      return res.status(400).json({
+    // Kiểm tra quyền sở hữu
+    if (req.user.role === 'HR' && job.employer_id !== req.user.id) {
+      return res.status(403).json({
         success: false,
-        message: 'Chỉ có thể gửi duyệt tin tuyển dụng ở trạng thái Nháp hoặc Bị từ chối!'
+        message: 'Bạn không có quyền gửi duyệt tin này!'
       });
     }
 
-    const updatedJob = await updateJobStatus(id, 'PENDING');
+    // Chỉ cho phép gửi duyệt nếu status là draft hoặc reject
+    if (!['draft', 'reject'].includes(job.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Chỉ có thể gửi duyệt tin ở trạng thái Nháp hoặc Bị từ chối!'
+      });
+    }
+
+    const updatedJob = await updateJobStatus(id, 'pending');
 
     return res.status(200).json({
       success: true,
-      message: 'Gửi tin tuyển dụng để phê duyệt thành công!',
+      message: 'Gửi tin tuyển dụng để phê duyệt thành công! Đang chờ TPNS xử lý.',
       data: updatedJob
     });
 
@@ -171,13 +284,13 @@ export const submitForApproval = async (req, res) => {
 };
 
 /**
- * Đóng tin tuyển dụng
+ * Phê duyệt tin tuyển dụng (TPNS only)
  */
-export const closeJobPost = async (req, res) => {
+export const approveJobPost = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    const job = await getJobById(id);
+
+    const job = await getJobByEmployerId(id);
     if (!job) {
       return res.status(404).json({
         success: false,
@@ -185,15 +298,106 @@ export const closeJobPost = async (req, res) => {
       });
     }
 
-    // Chỉ cho phép đóng nếu status là PUBLISHED
-    if (job.status !== 'PUBLISHED') {
+    // Chỉ cho phép duyệt nếu status là pending
+    if (job.status !== 'pending') {
       return res.status(400).json({
         success: false,
-        message: 'Chỉ có thể đóng tin tuyển dụng đang public!'
+        message: 'Chỉ có thể duyệt tin đang ở trạng thái Chờ duyệt!'
       });
     }
 
-    const updatedJob = await updateJobStatus(id, 'CLOSED');
+    const updatedJob = await updateJobStatus(id, 'approve');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Phê duyệt tin tuyển dụng thành công! Tin đã được công khai.',
+      data: updatedJob
+    });
+
+  } catch (error) {
+    console.error('Approve job error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi khi phê duyệt tin tuyển dụng!',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Từ chối tin tuyển dụng (TPNS only)
+ */
+export const rejectJobPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body; // Lý do từ chối (optional)
+
+    const job = await getJobByEmployerId(id);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy tin tuyển dụng!'
+      });
+    }
+
+    // Chỉ cho phép từ chối nếu status là pending
+    if (job.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Chỉ có thể từ chối tin đang ở trạng thái Chờ duyệt!'
+      });
+    }
+
+    const updatedJob = await updateJobStatus(id, 'reject', reason);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Từ chối tin tuyển dụng thành công!',
+      data: updatedJob
+    });
+
+  } catch (error) {
+    console.error('Reject job error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi khi từ chối tin tuyển dụng!',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Đóng tin tuyển dụng (HR - chủ sở hữu tin)
+ */
+export const closeJobPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const job = await getJobByEmployerId(id);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy tin tuyển dụng!'
+      });
+    }
+
+    // Kiểm tra quyền sở hữu (chỉ HR tạo tin mới được đóng)
+    if (req.user.role === 'HR' && job.employer_id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền đóng tin này!'
+      });
+    }
+
+    // Chỉ cho phép đóng nếu status là approve
+    if (job.status !== 'approve') {
+      return res.status(400).json({
+        success: false,
+        message: 'Chỉ có thể đóng tin đã được phê duyệt!'
+      });
+    }
+
+    const updatedJob = await updateJobStatus(id, 'close');
 
     return res.status(200).json({
       success: true,
@@ -217,8 +421,8 @@ export const closeJobPost = async (req, res) => {
 export const deleteJobPost = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    const job = await getJobById(id);
+
+    const job = await getJobByEmployerId(id);
     if (!job) {
       return res.status(404).json({
         success: false,
