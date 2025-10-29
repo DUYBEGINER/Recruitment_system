@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { Home, Book, Users, Upload, Settings, UserCheck, Calendar } from "lucide-react"
+import { Book, Users, Upload, UserCheck, Calendar } from "lucide-react"
 import useAuth from "../../hook/useAuth"
 
 const AdminSidebar = () => {
@@ -21,14 +21,9 @@ const AdminSidebar = () => {
     { path: `${basePath}/createjob`, label: "Tạo tin tuyển dụng", icon: Upload },
   ]
 
-  // Menu chỉ dành cho TPNS
-  const tpnsOnlyItems = [
-    { path: `${basePath}/settings`, label: "Cài đặt hệ thống", icon: Settings },
-  ]
-
   // Kết hợp menu dựa vào role
   const navItems = user?.role === 'TPNS' 
-    ? [...commonNavItems, ...tpnsOnlyItems]
+    ? [...commonNavItems]
     : [...commonNavItems, ...hrOnlyItems]
 
   return (
