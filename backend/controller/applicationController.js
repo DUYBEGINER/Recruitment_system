@@ -283,14 +283,6 @@ export async function submitApplication(req, res) {
     });
   } catch (error) {
     console.error('Submit application error:', error);
-    
-    // Xử lý lỗi duplicate
-    if (error.message.includes('đã ứng tuyển')) {
-      return res.status(409).json({
-        success: false,
-        message: error.message,
-      });
-    }
 
     res.status(500).json({
       success: false,

@@ -55,9 +55,11 @@ export const getAllJobsFiltered = async (filters = {}) => {
       SELECT 
         jp.*,
         e.full_name as employer_name,
-        e.role as employer_role
+        e.role as employer_role,
+        c.name as companyName
       FROM JobPosting jp
       LEFT JOIN Employer e ON jp.employer_id = e.id
+      LEFT JOIN Company c ON e.company_id = c.id
       WHERE 1=1
     `;
 
@@ -155,9 +157,10 @@ export const getAllJobs = async (params = {}) => {
     const dataResult = await request.query(`
       SELECT 
         jp.*,
-        e.full_name as companyName
+        c.name as companyName
       FROM JobPosting jp
       LEFT JOIN Employer e ON jp.employer_id = e.id
+      LEFT JOIN Company c ON e.company_id = c.id
       ${whereClause}
       ORDER BY jp.created_at DESC
       OFFSET @offset ROWS
@@ -207,10 +210,12 @@ export const getJobById = async (id) => {
           jp.status,
           jp.created_at AS createdAt,
           jp.updated_at AS updatedAt,
-          NULL AS companyName, 
+          c.name AS companyName, 
           NULL AS companyLogo,
           (SELECT COUNT(*) FROM Application a WHERE a.job_id = jp.id) AS applications
         FROM JobPosting jp
+        LEFT JOIN Employer e ON jp.employer_id = e.id
+        LEFT JOIN Company c ON e.company_id = c.id
         WHERE jp.id = @id
       `);
 
@@ -232,9 +237,11 @@ export const getJobByEmployerId = async (id) => {
           jp.*,
           e.full_name as employer_name,
           e.role as employer_role,
-          e.phone as employer_phone
+          e.phone as employer_phone,
+          c.name as companyName
         FROM JobPosting jp
         LEFT JOIN Employer e ON jp.employer_id = e.id
+        LEFT JOIN Company c ON e.company_id = c.id
         WHERE jp.id = @id
       `);
     

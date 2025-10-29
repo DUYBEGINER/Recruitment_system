@@ -15,7 +15,7 @@ function LoginPage() {
 
   const message = useMessage();
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { setUser, setAuthenticate } = useAuth();
   
   console.log("formData", formData);
 
@@ -37,6 +37,7 @@ function LoginPage() {
       console.log("Kết quả đăng nhập:", result);
       message.success(result.message || "Đăng nhập thành công!");
       setUser(result.data.user);
+      setAuthenticate(true);
       navigate("/", { replace: true });
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);

@@ -150,9 +150,11 @@ export default function JobDetail() {
         }, 2000);
       } else {
         setMessage({ type: 'error', text: res?.message || 'Không thể nộp hồ sơ' });
+        setSubmitting(false); // ⚠️ Reset submitting khi có lỗi
       }
     } catch (error) {
       setMessage({ type: 'error', text: error.message || 'Có lỗi xảy ra khi nộp hồ sơ' });
+      setSubmitting(false); // ⚠️ Reset submitting khi có lỗi
     }
   };
 

@@ -56,10 +56,11 @@ export async function getApplicationsByCandidateId(candidateId) {
           j.level,
           j.salary_min,
           j.salary_max,
-          e.full_name as company_name
+          c.name as company_name
         FROM Application a
         LEFT JOIN JobPosting j ON a.job_id = j.id
         LEFT JOIN Employer e ON j.employer_id = e.id
+        LEFT JOIN Company c ON e.company_id = c.id
         WHERE a.candidate_id = @candidate_id
         ORDER BY a.submitted_at DESC
       `);
@@ -268,16 +269,6 @@ export async function checkDuplicateApplication(jobId, candidateId) {
 export async function createApplication(applicationData) {
   try {
     const pool = await connect();
-    
-    // Kiểm tra duplicate
-    const isDuplicate = await checkDuplicateApplication(
-      applicationData.job_id,
-      applicationData.candidate_id
-    );
-    
-    if (isDuplicate) {
-      throw new Error('Bạn đã ứng tuyển vị trí này rồi!');
-    }
 
     // Chỉ insert các field có trong bảng Application
     // Status ENUM: 'submitted', 'reviewing', 'accepted', 'rejected'

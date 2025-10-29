@@ -9,7 +9,7 @@ const AdminHeader = ({ title = "ADMIN" }) => {
 
   const handleLogout = async () => {
     await logout()
-    navigate("/employee-login", { replace: true })
+    navigate("/", { replace: true })
   }
 
   return (
