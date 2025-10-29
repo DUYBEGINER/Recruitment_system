@@ -1,14 +1,13 @@
 
 import './App.css'
 import {Routes, Route, Link } from "react-router-dom";
-import Home from "./page/Home";
-import LoginPage from "./page/LoginPage";
+
+//Import cac route admin
 import EmployeeLoginPage from "./page/EmployeeLoginPage";
-import RegisterPage from "./page/RegisterPage";
 import CreateJob from "./page/admin/CreateJob";
 import EditJob from "./page/admin/EditJob";
 import JobsPost from "./page/admin/JobsPost";
-import JobDetail from "./page/admin/JobDetail";
+import AdminJobDetail from "./page/admin/AdminJobDetail";
 import Applications from "./page/admin/Applications";
 import ApplicationDetail from "./page/admin/ApplicationDetail";
 import Candidates from "./page/admin/Candidates";
@@ -17,9 +16,15 @@ import Interviews from "./page/admin/Interviews";
 import InterviewDetail from "./page/admin/InterviewDetail";
 import CreateInterview from "./page/admin/CreateInterview";
 import UploadFile from "./page/admin/UploadFile";
+
+
+//import cac route user
+import RegisterPage from "./page/RegisterPage";
+import Home from "./page/Home";
+import Recruitment from "./page/Recruitment";
+import LoginPage from "./page/LoginPage";
 import JobPage from "./page/JobPage";
 import JobDetailPage from './page/JobDetailPage';
-import Recruitment from "./page/Recruitment";
 
 // Import các route bảo vệ
 import AuthRoute from "./components/ProtectedRoute/AuthRoute";
@@ -27,6 +32,7 @@ import PrivateRoute from "./components/ProtectedRoute/PrivateRoute";
 import HRRoute from "./components/ProtectedRoute/HRRoute";
 import TPNSRoute from "./components/ProtectedRoute/TPNSRoute";
 import PublicRoute from "./components/ProtectedRoute/PublicRoute";
+import ProfilePage from './page/ProfilePage';
 
 import '@ant-design/v5-patch-for-react-19';
 
@@ -36,6 +42,8 @@ function App() {
     <Routes>
       <Route path="/job-page" element={<JobPage/>}/>
       <Route path="/jobs/:id" element={<JobDetailPage />} />
+      <Route path="/profile" element={<ProfilePage/>}/>
+      
       {/* Public routes - Nhưng CHẶN nhân viên (TPNS/HR) không cho vào */}
       <Route 
         path="/" 
@@ -101,7 +109,7 @@ function App() {
         path="/HR/jobs/:id" 
         element={
           <HRRoute>
-            <JobDetail />
+            <AdminJobDetail />
           </HRRoute>
         } 
       />
@@ -191,7 +199,7 @@ function App() {
         path="/TPNS/jobs/:id" 
         element={
           <TPNSRoute>
-            <JobDetail />
+            <AdminJobDetail />
           </TPNSRoute>
         } 
       />

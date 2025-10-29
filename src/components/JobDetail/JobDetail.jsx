@@ -17,8 +17,16 @@ export default function JobDetail() {
   const { id } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [cvFile, setCvFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    coverLetter: ''
+  });
   const navigate = useNavigate();
   const { user, authenticate } = useAuth();
 
@@ -26,16 +34,42 @@ export default function JobDetail() {
     const fetchJob = async () => {
       try {
         const res = await jobAPI.getJobById(id);
-        console.log("Loaded job:", res.data);
-        setJob(res.data);
+        // Ensure we're getting the correct data structure
+        if (res.success && res.data) {
+          setJob(res.data);
+          setMessage(null);
+        } else {
+          setMessage({
+            type: 'error',
+            text: res.message || 'Không thể tải thông tin tuyển dụng'
+          });
+          setJob(null);
+        }
       } catch (err) {
         console.error("Lỗi load job:", err);
+        setMessage({
+          type: 'error',
+          text: err.response?.data?.message || 'Lỗi khi tải thông tin tuyển dụng'
+        });
+        setJob(null);
       } finally {
         setLoading(false);
       }
     };
     fetchJob();
   }, [id]);
+
+  // Pre-fill form với thông tin user khi mở modal
+  useEffect(() => {
+    if (showApplyModal && user) {
+      setFormData({
+        fullName: user.full_name || user.fullName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        coverLetter: ''
+      });
+    }
+  }, [showApplyModal, user]);
 
   if (loading) return <p>Đang tải...</p>;
   if (!job) return <p>Không tìm thấy tin tuyển dụng!</p>;
@@ -45,21 +79,77 @@ export default function JobDetail() {
       navigate('/login');
       return;
     }
-    setShowModal(true);
+    setShowApplyModal(true);
   };
 
-  const handleSubmitApplication = async (formData) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCloseModal = () => {
+    setShowApplyModal(false);
+    setCvFile(null);
+    setMessage(null);
+    setFormData({
+      fullName: '',
+      email: '',
+      phone: '',
+      coverLetter: ''
+    });
+  };
+
+  const handleFileChange = (e) => {
+    setCvFile(e.target.files?.[0] || null);
+  };
+
+  const handleSubmitApplication = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      setMessage({ type: 'error', text: 'Bạn cần đăng nhập để nộp hồ sơ.' });
+      return;
+    }
+    
+    const candidateId = user.id || user.userId || user.user_id;
+    if (!candidateId) {
+      setMessage({ type: 'error', text: 'Không xác định được tài khoản ứng viên.' });
+      return;
+    }
+
+    if (!cvFile) {
+      setMessage({ type: 'error', text: 'Vui lòng upload CV của bạn!' });
+      return;
+    }
+
+    setSubmitting(true);
+    setMessage(null);
+    
     try {
-      const response = await applicationAPI.submitApplication(formData);
+      const form = new FormData();
+      form.append('jobId', id);
+      form.append('candidateId', candidateId);
+      form.append('fullName', formData.fullName);
+      form.append('email', formData.email);
+      form.append('phone', formData.phone);
+      if (formData.coverLetter) {
+        form.append('coverLetter', formData.coverLetter);
+      }
+      if (cvFile) {
+        form.append('file', cvFile);
+      }
+
+      const res = await applicationAPI.submitApplication(form);
       
-      if (response.success) {
-        setMessage({ type: 'success', text: 'Nộp hồ sơ thành công! Chúng tôi sẽ liên hệ với bạn sớm.' });
-        setShowModal(false);
-        
-        // Tự động ẩn thông báo sau 5s
+      if (res?.success) {
+        setMessage({ type: 'success', text: res.message || 'Nộp hồ sơ thành công!' });
         setTimeout(() => {
-          setMessage(null);
-        }, 5000);
+          handleCloseModal();
+        }, 2000);
+      } else {
+        setMessage({ type: 'error', text: res?.message || 'Không thể nộp hồ sơ' });
       }
     } catch (error) {
       setMessage({ type: 'error', text: error.message || 'Có lỗi xảy ra khi nộp hồ sơ' });
@@ -120,10 +210,6 @@ export default function JobDetail() {
 
           <div className="sticky-actions">
             <button className="btn-apply primary" onClick={handleApplyClick}>ỨNG TUYỂN NGAY</button>
-            
-            {message && (
-              <div className={`apply-message ${message.type}`}>{message.text}</div>
-            )}
           </div>
         </main>
 
@@ -168,14 +254,106 @@ export default function JobDetail() {
         </aside>
       </div>
 
-      {/* Application Modal */}
-      <ApplicationModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        jobTitle={job?.title || ''}
-        jobId={id}
-        onSubmitSuccess={handleSubmitApplication}
-      />
+      {/* Modal ứng tuyển */}
+      {showApplyModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Nộp hồ sơ ứng tuyển</h2>
+              <button className="modal-close" onClick={handleCloseModal}>&times;</button>
+            </div>
+
+            <form className="apply-modal-form" onSubmit={handleSubmitApplication}>
+              <div className="form-group">
+                <label htmlFor="fullName">Họ và tên <span className="required">*</span></label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  placeholder="Nhập họ và tên của bạn"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="email">Email <span className="required">*</span></label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="example@email.com"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="phone">Số điện thoại <span className="required">*</span></label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="0123456789"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="cvFile">Upload CV <span className="required">*</span></label>
+                <input
+                  type="file"
+                  id="cvFile"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                  required
+                />
+                <small className="form-hint">Chấp nhận file PDF, DOC, DOCX (tối đa 5MB)</small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="coverLetter">Thư giới thiệu</label>
+                <textarea
+                  id="coverLetter"
+                  name="coverLetter"
+                  value={formData.coverLetter}
+                  onChange={handleInputChange}
+                  placeholder="Giới thiệu về bản thân và lý do bạn phù hợp với vị trí này..."
+                  rows="4"
+                />
+              </div>
+
+              {message && (
+                <div className={`form-message ${message.type}`}>
+                  {message.text}
+                </div>
+              )}
+
+              <div className="modal-actions">
+                <button 
+                  type="button" 
+                  className="btn-cancel" 
+                  onClick={handleCloseModal}
+                  disabled={submitting}
+                >
+                  Hủy
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn-submit" 
+                  disabled={submitting}
+                >
+                  {submitting ? 'Đang gửi...' : 'Nộp hồ sơ'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

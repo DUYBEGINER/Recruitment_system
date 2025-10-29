@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getApplications,
   getApplicationsByJob,
+  getMyCandidateApplications,
   getApplicationDetail,
   updateApplicationStatus,
   countApplications,
@@ -18,9 +19,24 @@ const router = express.Router();
  * Base path: /applications
  */
 
-// Nộp hồ sơ ứng tuyển (public - không cần đăng nhập)
-// POST /applications/submit
-router.post('/submit', uploadCV, submitApplication);
+// Nộp hồ sơ ứng tuyển (Public - yêu cầu đăng nhập)
+// POST /applications/apply
+router.post('/apply', verifyToken, (req, res, next) => {
+  uploadCV.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('❌ Multer upload error:', err);
+      return res.status(400).json({
+        success: false,
+        message: err.message || 'Lỗi khi upload file!',
+      });
+    }
+    next();
+  });
+}, submitApplication);
+
+// Lấy danh sách applications của candidate đang đăng nhập
+// GET /applications/my-applications
+router.get('/my-applications', verifyToken, getMyCandidateApplications);
 
 // Lấy danh sách applications (có filter: job_id, status, employer_id)
 // GET /applications?job_id=1&status=pending

@@ -44,10 +44,31 @@ export const createJobPost = async (req, res) => {
 // DDuy start
 export const getJobPosts = async (req, res) => {
   try {
-    const jobs = await getAllJobs();
+    // Extract query parameters
+    const params = {
+      search: req.query.search || req.query.q,
+      employerIds: req.query.employerIds,
+      locations: req.query.locations,
+      jobTypes: req.query.jobTypes,
+      levels: req.query.levels,
+      page: req.query.page,
+      limit: req.query.limit
+    };
+
+    console.log('🔍 Controller received params:', params);
+
+    // Call repository with params
+    const result = await getAllJobs(params);
+
+    console.log('✅ Repository returned:', {
+      dataLength: result.data.length,
+      pagination: result.pagination
+    });
+
     return res.status(200).json({
       success: true,
-      data: jobs
+      data: result.data,
+      pagination: result.pagination
     });
   } catch (error) {
     console.error('❌ Controller getAll error:', error);
@@ -100,6 +121,14 @@ export const getJobPostById = async (req, res) => {
         success: false,
         message: "Không tìm thấy tin tuyển dụng!"
       });
+    }
+
+    // Get employer info if available
+    const employerInfo = await getJobByEmployerId(id);
+    if (employerInfo) {
+      job.companyName = employerInfo.employer_name;
+      job.employerRole = employerInfo.employer_role;
+      job.employerPhone = employerInfo.employer_phone;
     }
 
     return res.status(200).json({

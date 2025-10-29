@@ -1,12 +1,13 @@
 import {
   getAllApplications,
   getApplicationsByJobId,
+  getApplicationsByCandidateId,
   getApplicationById,
   updateApplicationStatus as updateStatus,
   countApplicationsByJobId,
   countApplicationsByStatus as countByStatus,
+  getCandidateById,
   createApplication,
-  checkExistingApplication,
 } from '../repositories/applicationRepository.js';
 import { getCandidateByEmail, createCandidate } from '../repositories/candidateRepository.js';
 
@@ -87,6 +88,35 @@ export async function getApplicationsByJob(req, res) {
   }
 }
 
+// Lấy danh sách applications của candidate đang đăng nhập
+export async function getMyCandidateApplications(req, res) {
+  try {
+    const candidateId = req.user?.id;
+
+    if (!candidateId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Vui lòng đăng nhập!',
+      });
+    }
+
+    const applications = await getApplicationsByCandidateId(candidateId);
+
+    res.status(200).json({
+      success: true,
+      data: applications,
+      message: 'Lấy danh sách hồ sơ đã ứng tuyển thành công!',
+    });
+  } catch (error) {
+    console.error('Get my applications error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy danh sách hồ sơ!',
+      error: error.message,
+    });
+  }
+}
+
 // Lấy chi tiết 1 application
 export async function getApplicationDetail(req, res) {
   try {
@@ -121,8 +151,8 @@ export async function updateApplicationStatus(req, res) {
     const { id } = req.params;
     const { status } = req.body;
 
-    // Validate status
-    const validStatuses = ['pending', 'reviewing', 'shortlisted', 'interviewed', 'accepted', 'rejected'];
+    // Validate status - theo ERD: submitted, reviewing, accepted, rejected
+    const validStatuses = ['submitted', 'reviewing', 'accepted', 'rejected'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -181,68 +211,87 @@ export async function countApplications(req, res) {
   }
 }
 
-// Nộp hồ sơ ứng tuyển (cho candidate)
+// Nộp hồ sơ ứng tuyển
 export async function submitApplication(req, res) {
   try {
-    const { jobId, fullName, email, phone, coverLetter } = req.body;
-    const cvFile = req.file;
-
-    // Validate
-    if (!jobId || !fullName || !email || !phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Vui lòng điền đầy đủ thông tin!',
-      });
-    }
-
-    if (!cvFile) {
-      return res.status(400).json({
-        success: false,
-        message: 'Vui lòng tải lên CV!',
-      });
-    }
-
-    // Kiểm tra xem candidate đã tồn tại chưa (theo email)
-    let candidate = await getCandidateByEmail(email);
+    console.log('📝 Submit application request received');
+    console.log('Body:', req.body);
+    console.log('File:', req.file);
     
-    // Nếu chưa tồn tại, tạo mới candidate
-    if (!candidate) {
-      const candidateData = {
-        full_name: fullName,
-        email: email,
-        phone: phone,
-      };
-      candidate = await createCandidate(candidateData);
-    }
+    const { jobId, candidateId, fullName, email, phone, coverLetter } = req.body;
 
-    // Kiểm tra xem đã ứng tuyển vị trí này chưa
-    const existingApplication = await checkExistingApplication(candidate.id, parseInt(jobId));
-    if (existingApplication) {
+    // Validate required fields
+    if (!jobId || !candidateId) {
       return res.status(400).json({
         success: false,
-        message: 'Bạn đã ứng tuyển vị trí này rồi!',
+        message: 'Thiếu thông tin jobId hoặc candidateId!',
       });
     }
 
-    // Tạo application mới
-    const cvUrl = `/uploads/${cvFile.filename}`;
+    // Lấy thông tin candidate từ database để verify
+    const candidate = await getCandidateById(parseInt(candidateId));
+    
+    if (!candidate) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin ứng viên!',
+      });
+    }
+
+    // Lấy CV URL từ file upload hoặc CV có sẵn của candidate
+    let cvUrl = candidate.cv_url; // CV mặc định từ profile
+    
+    // Nếu có upload file mới
+    if (req.file) {
+      cvUrl = `/uploads/${req.file.filename}`;
+      console.log('✅ File uploaded:', cvUrl);
+    }
+
+    if (!cvUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng upload CV!',
+      });
+    }
+
+    // Tạo application với chỉ các field có trong DB
     const applicationData = {
       job_id: parseInt(jobId),
-      candidate_id: candidate.id,
+      candidate_id: parseInt(candidateId),
       cv_url: cvUrl,
       status: 'submitted',
-      cover_letter: coverLetter || null,
     };
 
     const application = await createApplication(applicationData);
 
+    // Trả về response với đầy đủ thông tin (bao gồm cả info từ form)
     res.status(201).json({
       success: true,
-      data: application,
-      message: 'Nộp hồ sơ thành công! Chúng tôi sẽ liên hệ với bạn sớm.',
+      data: {
+        applicationId: application.id,
+        jobId: application.job_id,
+        candidateId: application.candidate_id,
+        candidateName: fullName || candidate.full_name,
+        candidateEmail: email || candidate.email,
+        candidatePhone: phone || candidate.phone,
+        cvUrl: application.cv_url,
+        status: application.status,
+        submittedAt: application.submitted_at,
+        coverLetter: coverLetter || null,
+      },
+      message: 'Nộp hồ sơ thành công!',
     });
   } catch (error) {
     console.error('Submit application error:', error);
+    
+    // Xử lý lỗi duplicate
+    if (error.message.includes('đã ứng tuyển')) {
+      return res.status(409).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Lỗi khi nộp hồ sơ!',

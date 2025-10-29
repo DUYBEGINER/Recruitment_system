@@ -92,22 +92,90 @@ export const getAllJobsFiltered = async (filters = {}) => {
 };
 
 /**
- * Lấy danh sách tin tuyển dụng
+ * Lấy danh sách tin tuyển dụng với filter và pagination
  */
-// DDUy start
-
-export const getAllJobs = async () => {
+export const getAllJobs = async (params = {}) => {
   try {
     const pool = await connect();
-    const result = await pool.request().query(`
-      SELECT * FROM JobPosting
-      WHERE status= 'approve'
-      ORDER BY created_at DESC
+    const request = pool.request();
+    
+    // Build WHERE conditions
+    let whereConditions = ["status = 'approve'"];
+
+    // Filter by search text (title or description)
+    if (params.search) {
+      whereConditions.push('(title LIKE @search OR description LIKE @search)');
+      request.input('search', sql.NVarChar, `%${params.search}%`);
+    }
+
+    // Filter by employer IDs
+    if (params.employerIds) {
+      whereConditions.push('employer_id IN (SELECT value FROM STRING_SPLIT(@employerIds, \',\'))');
+      request.input('employerIds', sql.NVarChar, params.employerIds);
+    }
+
+    // Filter by locations (areas)
+    if (params.locations) {
+      whereConditions.push('location IN (SELECT value FROM STRING_SPLIT(@locations, \',\'))');
+      request.input('locations', sql.NVarChar, params.locations);
+    }
+
+    // Filter by job types
+    if (params.jobTypes) {
+      whereConditions.push('job_type IN (SELECT value FROM STRING_SPLIT(@jobTypes, \',\'))');
+      request.input('jobTypes', sql.NVarChar, params.jobTypes);
+    }
+
+    // Filter by levels
+    if (params.levels) {
+      whereConditions.push('level IN (SELECT value FROM STRING_SPLIT(@levels, \',\'))');
+      request.input('levels', sql.NVarChar, params.levels);
+    }
+
+    const whereClause = whereConditions.length ? 'WHERE ' + whereConditions.join(' AND ') : '';
+
+    // Pagination
+    const page = parseInt(params.page) || 1;
+    const limit = parseInt(params.limit) || 10;
+    const offset = (page - 1) * limit;
+    
+    request.input('offset', sql.Int, offset);
+    request.input('limit', sql.Int, limit);
+
+    // Get total count
+    const countResult = await request.query(`
+      SELECT COUNT(*) as total
+      FROM JobPosting
+      ${whereClause}
     `);
-    return result.recordset;
+    
+    const total = countResult.recordset[0].total;
+
+    // Get paginated results
+    const dataResult = await request.query(`
+      SELECT 
+        jp.*,
+        e.full_name as companyName
+      FROM JobPosting jp
+      LEFT JOIN Employer e ON jp.employer_id = e.id
+      ${whereClause}
+      ORDER BY jp.created_at DESC
+      OFFSET @offset ROWS
+      FETCH NEXT @limit ROWS ONLY
+    `);
+
+    return {
+      data: dataResult.recordset,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
   } catch (error) {
     console.error('❌ Error in getAllJobs:', error);
-    throw error; // Đẩy lỗi lên controller xử lý
+    throw error;
   }
 };
 
@@ -296,3 +364,4 @@ export const deleteJob = async (id) => {
     throw error;
   }
 };
+

@@ -18,7 +18,7 @@ const StatusTag = ({ status }) => {
   return <Tag color={color}>{text}</Tag>;
 };
 
-export default function JobDetail() {
+export default function AdminJobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();

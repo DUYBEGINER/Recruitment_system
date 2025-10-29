@@ -1,4 +1,5 @@
-import { sql, connect } from '../config/db.js';
+import sql from 'mssql';
+import { connect } from '../config/db.js';
 
 /**
  * Repository để quản lý Application (hồ sơ ứng tuyển)
@@ -30,6 +31,41 @@ export async function getApplicationsByJobId(jobId) {
     return result.recordset;
   } catch (error) {
     console.error('Error in getApplicationsByJobId:', error);
+    throw error;
+  }
+}
+
+// Lấy tất cả applications theo candidate_id
+export async function getApplicationsByCandidateId(candidateId) {
+  try {
+    const pool = await connect();
+    const result = await pool
+      .request()
+      .input('candidate_id', sql.Int, candidateId)
+      .query(`
+        SELECT 
+          a.id,
+          a.job_id,
+          a.candidate_id,
+          a.cv_url,
+          a.status,
+          a.submitted_at,
+          j.title as job_title,
+          j.location as job_location,
+          j.job_type,
+          j.level,
+          j.salary_min,
+          j.salary_max,
+          e.full_name as company_name
+        FROM Application a
+        LEFT JOIN JobPosting j ON a.job_id = j.id
+        LEFT JOIN Employer e ON j.employer_id = e.id
+        WHERE a.candidate_id = @candidate_id
+        ORDER BY a.submitted_at DESC
+      `);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error in getApplicationsByCandidateId:', error);
     throw error;
   }
 }
@@ -182,45 +218,84 @@ export async function countApplicationsByStatus(jobId, status) {
   }
 }
 
+// Lấy thông tin candidate theo ID
+export async function getCandidateById(candidateId) {
+  try {
+    const pool = await connect();
+    const result = await pool
+      .request()
+      .input('id', sql.Int, candidateId)
+      .query(`
+        SELECT 
+          id,
+          full_name,
+          email,
+          phone,
+          cv_url,
+          created_at,
+          updated_at
+        FROM Candidate
+        WHERE id = @id
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error in getCandidateById:', error);
+    throw error;
+  }
+}
+
+// Kiểm tra candidate đã ứng tuyển job này chưa
+export async function checkDuplicateApplication(jobId, candidateId) {
+  try {
+    const pool = await connect();
+    const result = await pool
+      .request()
+      .input('job_id', sql.Int, jobId)
+      .input('candidate_id', sql.Int, candidateId)
+      .query(`
+        SELECT COUNT(*) as count
+        FROM Application
+        WHERE job_id = @job_id AND candidate_id = @candidate_id
+      `);
+    return result.recordset[0].count > 0;
+  } catch (error) {
+    console.error('Error in checkDuplicateApplication:', error);
+    throw error;
+  }
+}
+
 // Tạo application mới
 export async function createApplication(applicationData) {
   try {
     const pool = await connect();
+    
+    // Kiểm tra duplicate
+    const isDuplicate = await checkDuplicateApplication(
+      applicationData.job_id,
+      applicationData.candidate_id
+    );
+    
+    if (isDuplicate) {
+      throw new Error('Bạn đã ứng tuyển vị trí này rồi!');
+    }
+
+    // Chỉ insert các field có trong bảng Application
+    // Status ENUM: 'submitted', 'reviewing', 'accepted', 'rejected'
     const result = await pool
       .request()
       .input('job_id', sql.Int, applicationData.job_id)
       .input('candidate_id', sql.Int, applicationData.candidate_id)
       .input('cv_url', sql.NVarChar, applicationData.cv_url)
-      .input('status', sql.NVarChar, applicationData.status)
-      .input('cover_letter', sql.NVarChar, applicationData.cover_letter)
+      .input('status', sql.NVarChar, applicationData.status || 'submitted')
       .query(`
         INSERT INTO Application (job_id, candidate_id, cv_url, status, submitted_at)
         OUTPUT INSERTED.*
         VALUES (@job_id, @candidate_id, @cv_url, @status, GETDATE())
       `);
+    
     return result.recordset[0];
   } catch (error) {
     console.error('Error in createApplication:', error);
-    throw error;
-  }
-}
-
-// Kiểm tra xem candidate đã ứng tuyển job này chưa
-export async function checkExistingApplication(candidateId, jobId) {
-  try {
-    const pool = await connect();
-    const result = await pool
-      .request()
-      .input('candidate_id', sql.Int, candidateId)
-      .input('job_id', sql.Int, jobId)
-      .query(`
-        SELECT TOP 1 id
-        FROM Application
-        WHERE candidate_id = @candidate_id AND job_id = @job_id
-      `);
-    return result.recordset[0];
-  } catch (error) {
-    console.error('Error in checkExistingApplication:', error);
     throw error;
   }
 }

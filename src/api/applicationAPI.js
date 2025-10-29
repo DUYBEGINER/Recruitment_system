@@ -33,6 +33,20 @@ const applicationAPI = {
     }
   },
 
+  // Lấy danh sách applications của candidate đang đăng nhập
+  getMyApplications: async () => {
+    try {
+      const response = await axiosClient.get('/applications/my-applications');
+      return response.data;
+    } catch (error) {
+      console.error('Get my applications error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Lỗi khi lấy danh sách hồ sơ!',
+      };
+    }
+  },
+
   // Lấy chi tiết 1 application
   getApplicationById: async (id) => {
     try {
@@ -76,10 +90,10 @@ const applicationAPI = {
     }
   },
 
-  // Nộp hồ sơ ứng tuyển (cho candidate)
+  // Nộp hồ sơ ứng tuyển
   submitApplication: async (formData) => {
     try {
-      const response = await axiosClient.post('/applications/submit', formData, {
+      const response = await axiosClient.post('/applications/apply', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -87,7 +101,10 @@ const applicationAPI = {
       return response.data;
     } catch (error) {
       console.error('Submit application error:', error);
-      throw new Error(error.response?.data?.message || 'Lỗi khi nộp hồ sơ ứng tuyển!');
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Lỗi khi nộp hồ sơ!',
+      };
     }
   },
 };

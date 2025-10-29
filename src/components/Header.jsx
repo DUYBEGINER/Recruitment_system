@@ -30,7 +30,7 @@ export default function Header() {
           </Link>
           <Link 
             to="/about" 
-            className={`hover:text-red-600 transition-colors ${isActive('/about') ? 'text-red-600 font-semibold' : ''}`}
+            className={`hover:text-red-600 transition-colors ${isActive('/') ? 'text-red-600 font-semibold' : ''}`}
           >
             Về chúng tôi
           </Link>
@@ -42,19 +42,19 @@ export default function Header() {
           </Link>
           <Link 
             to="/benefits" 
-            className={`hover:text-red-600 transition-colors ${isActive('/benefits') ? 'text-red-600 font-semibold' : ''}`}
+            className={`hover:text-red-600 transition-colors ${isActive('/') ? 'text-red-600 font-semibold' : ''}`}
           >
             Đãi ngộ
           </Link>
           <Link 
             to="/events" 
-            className={`hover:text-red-600 transition-colors ${isActive('/events') ? 'text-red-600 font-semibold' : ''}`}
+            className={`hover:text-red-600 transition-colors ${isActive('/') ? 'text-red-600 font-semibold' : ''}`}
           >
             Sự kiện
           </Link>
           <Link 
             to="/contact" 
-            className={`hover:text-red-600 transition-colors ${isActive('/contact') ? 'text-red-600 font-semibold' : ''}`}
+            className={`hover:text-red-600 transition-colors ${isActive('/') ? 'text-red-600 font-semibold' : ''}`}
           >
             Liên hệ
           </Link>
@@ -74,14 +74,17 @@ export default function Header() {
           </button>
         </div>) : (
         <div className="flex items-center space-x-3">
-          <span className="text-gray-700 font-medium">
-            Xin chào, {user?.full_name || user?.username || user?.email}
+          <Link
+            to="/profile"
+            className="text-gray-700 font-medium hover:text-blue-600 transition"
+          >
+            <span>Xin chào, {user?.full_name || user?.username || user?.email}</span>
             {user.role && (
               <span className="ml-2 text-xs px-2 py-1 rounded-full bg-red-100 text-red-600 font-semibold">
-                {user.role === 'TPNS' ? 'Trưởng phòng NS' : user.role}
+                {user.role === "TPNS" ? "Trưởng phòng NS" : user.role}
               </span>
             )}
-          </span>
+          </Link>
           <button onClick={logout} className="border border-red-500 text-red-600 font-medium rounded-full px-4 py-1.5 hover:bg-red-50 transition">
             Đăng xuất
           </button>
