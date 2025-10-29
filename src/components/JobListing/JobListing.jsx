@@ -94,7 +94,7 @@ export default function JobListing() {
   return (
     <div className="jobs-container">
       <div className="jobs-content">
-        <h2 className="section-title">VỊ TRÍ KHÁC</h2>
+        <h2 className="section-title">VỊ TRÍ ĐANG TUYỂN</h2>
 
         <div className="job-cards-grid">
           {jobs.map((job) => (
