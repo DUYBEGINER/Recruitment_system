@@ -21,7 +21,7 @@ export default function JobListing() {
 
   // Filter options - có thể lấy từ API hoặc define cố định
   const locationOptions = [
-    'Hà Nội', 'Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 
+    'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 
     'Cần Thơ', 'Bình Dương', 'Đồng Nai', 'Khác'
   ];
 
@@ -94,7 +94,7 @@ export default function JobListing() {
   return (
     <div className="jobs-container">
       <div className="jobs-content">
-        <h2 className="section-title">VỊ TRÍ ĐANG TUYỂN</h2>
+        <h2 className="section-title">VỊ TRÍ ĐANG TUYỂN DỤNG</h2>
 
         <div className="job-cards-grid">
           {jobs.map((job) => (
@@ -153,7 +153,7 @@ export default function JobListing() {
           <div className="filter-section">
             <div className="filter-header">
               <h4 className="filter-title-heading">Loại hình công việc</h4>
-              <span className="tat-ca" onClick={() => setSelectedJobTypes([])} style={{cursor: 'pointer'}}>Tất cả</span>
+              <span className="tat-ca" onClick={() => setSelectedJobTypes([])}>Tất cả</span>
             </div>
             <div className="filter-list-scroll-mock">
               {jobTypeOptions.map((type) => (
@@ -174,13 +174,11 @@ export default function JobListing() {
             </div>
           </div>
 
-          <hr className="divider" />
-
           {/* Khu vực (location) */}
           <div className="filter-section">
             <div className="filter-header">
-              <h4 className="filter-title-heading">Tìm theo khu vực</h4>
-              <span className="tat-ca" onClick={() => setSelectedLocations([])} style={{cursor: 'pointer'}}>Tất cả</span>
+              <h4 className="filter-title-heading">Khu vực</h4>
+              <span className="tat-ca" onClick={() => setSelectedLocations([])}>Tất cả</span>
             </div>
             <div className="filter-list-scroll-mock">
               {locationOptions.map((location) => (
@@ -201,13 +199,11 @@ export default function JobListing() {
             </div>
           </div>
 
-          <hr className="divider" />
-
           {/* Cấp bậc (level) */}
           <div className="filter-section">
             <div className="filter-header">
               <h4 className="filter-title-heading">Cấp bậc</h4>
-              <span className="tat-ca" onClick={() => setSelectedLevels([])} style={{cursor: 'pointer'}}>Tất cả</span>
+              <span className="tat-ca" onClick={() => setSelectedLevels([])}>Tất cả</span>
             </div>
             <div className="filter-list-scroll-mock">
               {levelOptions.map((level) => (
@@ -232,7 +228,6 @@ export default function JobListing() {
             <button
               className="btn-apply-filters"
               onClick={() => {
-                // apply filters: reset to page 1 and bump counter
                 setPage(1);
                 setFiltersAppliedAt((s) => s + 1);
               }}
