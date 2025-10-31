@@ -27,10 +27,8 @@ import useAuth from "../../hook/useAuth";
 /** Badge trạng thái */
 const StatusBadge = ({ status }) => {
   const map = {
-    pending:      { text: "Chờ xử lý",     cls: "bg-gray-100 text-gray-700 border-gray-200", icon: Clock },
+    submitted:    { text: "Đã nộp",        cls: "bg-gray-100 text-gray-700 border-gray-200", icon: Clock },
     reviewing:    { text: "Đang xem xét",  cls: "bg-blue-100 text-blue-700 border-blue-200", icon: Eye },
-    shortlisted:  { text: "Vào vòng sau",  cls: "bg-purple-100 text-purple-700 border-purple-200", icon: UserCheck },
-    interviewed:  { text: "Đã phỏng vấn", cls: "bg-indigo-100 text-indigo-700 border-indigo-200", icon: UserCheck },
     accepted:     { text: "Chấp nhận",     cls: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
     rejected:     { text: "Từ chối",       cls: "bg-red-100 text-red-700 border-red-200", icon: XCircle },
   };
@@ -107,10 +105,8 @@ export default function ApplicationDetail() {
 
   const getStatusText = (status) => {
     const map = {
-      pending: "Chờ xử lý",
+      submitted: "Đã nộp",
       reviewing: "Đang xem xét",
-      shortlisted: "Vào vòng sau",
-      interviewed: "Đã phỏng vấn",
       accepted: "Chấp nhận",
       rejected: "Từ chối",
     };
@@ -330,10 +326,8 @@ export default function ApplicationDetail() {
                     className="w-full"
                     size="large"
                     options={[
-                      { value: "pending", label: "Chờ xử lý" },
+                      { value: "submitted", label: "Đã nộp" },
                       { value: "reviewing", label: "Đang xem xét" },
-                      { value: "shortlisted", label: "Vào vòng sau" },
-                      { value: "interviewed", label: "Đã phỏng vấn" },
                       { value: "accepted", label: "Chấp nhận" },
                       { value: "rejected", label: "Từ chối" },
                     ]}

@@ -6,15 +6,15 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Cột 1: Logo + Tên công ty */}
         <div className="md:col-span-2">
-          <h2 className="text-red-600 text-2xl font-bold mb-1">viettel</h2>
+          <h2 className="text-red-600 text-2xl font-bold mb-1">PPD</h2>
           <p className="font-semibold mb-2">
-            TẬP ĐOÀN CÔNG NGHIỆP - VIỄN THÔNG QUÂN ĐỘI
+            TẬP ĐOÀN CÔNG NGHỆ VIỆT NAM
           </p>
           <a
             href="mailto:Tuyendung@viettel.com.vn"
             className="text-red-500 hover:underline block mb-2"
           >
-            Tuyendung@viettel.com.vn
+            Tuyendung@ppd.com.vn
           </a>
           <p className="text-gray-500 text-sm leading-relaxed">
             Lô D26 Khu đô thị mới Cầu Giấy, Phường Yên Hòa, Quận Cầu Giấy, Hà Nội, Việt Nam

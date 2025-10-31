@@ -15,7 +15,7 @@ const QuoteSection = () => {
                 <div className="quote-image-wrapper">
                     <img 
                         src={boss_img} 
-                        alt="Ông Phạm Phúc Duy - Chủ tịch kiêm Tổng giám đốc Tập đoàn " 
+                        alt="Ông TRẦN ĐĂNG DUY - Chủ tịch kiêm Tổng giám đốc Tập đoàn " 
                         className="quote-man-image" 
                     />
                     {/* Phần hình lượn sóng đỏ được tạo bằng CSS trong QuoteSection.css */}
@@ -31,7 +31,7 @@ const QuoteSection = () => {
                     </blockquote>
                     
                     <p className="quote-author">
-                        <span className="author-name">ÔNG PHẠM PHÚC DUY</span>
+                        <span className="author-name">ÔNG TRẦN ĐĂNG DUY</span>
                         <span className="author-title">Chủ tịch kiêm Tổng giám đốc Tập đoàn</span>
                     </p>
                 </div>
